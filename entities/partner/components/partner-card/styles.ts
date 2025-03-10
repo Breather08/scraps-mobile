@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#fff",
     borderRadius: 12,
-    overflow: "visible",
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,

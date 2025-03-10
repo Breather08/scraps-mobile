@@ -42,7 +42,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
 
         <View style={styles.details}>
           <View style={styles.row}>
-            <Text style={styles.name}>{partner.name}</Text>
+            <Text className="text-3xl">{partner.name}</Text>
             <MaterialCommunityIcons name="star" size={16} color="#FFC107" />
             <Text style={styles.rating}>{partner.rating}</Text>
           </View>

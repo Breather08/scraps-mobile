@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
-import MapView from "react-native-maps";
+import { StyleSheet } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 import {
   getCurrentPositionAsync,
   LocationObject,
@@ -38,7 +38,7 @@ export default function MapScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <>
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -49,8 +49,10 @@ export default function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
-      />
-    </View>
+      >
+        {location && <Marker coordinate={location.coords}></Marker>}
+      </MapView>
+    </>
   );
 }
 

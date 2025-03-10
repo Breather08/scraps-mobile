@@ -4,7 +4,7 @@ import React from "react";
 function ProfileScreen() {
   return (
     <View>
-      <Text>ProfileScreen</Text>
+      <Text className="text-3xl">ProfileScreen</Text>
     </View>
   );
 }
