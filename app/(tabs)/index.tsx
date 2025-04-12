@@ -1,11 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import {
   getCurrentPositionAsync,
   LocationObject,
   requestForegroundPermissionsAsync,
 } from "expo-location";
+import Animated from "react-native-reanimated";
+import { Partner } from "@/entities/partner/types";
+import { fetchPartners } from "@/entities/partner/api";
+import PartnerCard from "@/entities/partner/components/partner-card";
+import Carousel from "@/components/carousel";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ReanimatedCarousel from "react-native-reanimated-carousel";
 
 export default function MapScreen() {
   const DEFAULT_COORDINATES = { latitude: 51.1694, longitude: 71.4491 };
@@ -35,7 +48,17 @@ export default function MapScreen() {
 
   useEffect(() => {
     getLocation();
+    makePartnersRequest();
   }, []);
+
+  const [partners, setPartners] = useState<Partner[]>([]);
+  async function makePartnersRequest() {
+    const response = await fetchPartners();
+
+    setPartners(response);
+  }
+
+  const { width: screenWidth } = Dimensions.get("window");
 
   return (
     <>
@@ -52,6 +75,26 @@ export default function MapScreen() {
       >
         {location && <Marker coordinate={location.coords}></Marker>}
       </MapView>
+      <View style={styles.searchWrapper}>
+        <TextInput placeholder="Найти заведение" style={styles.searchInput} />
+      </View>
+      <View style={styles.carouselWrapper}>
+        <ReanimatedCarousel
+          data={partners}
+          renderItem={({ item }) => (
+            <PartnerCard key={item.name} partner={item} />
+          )}
+          height={300}
+          loop={false}
+          width={screenWidth}
+          style={{ width: screenWidth }}
+          mode="parallax"
+          modeConfig={{
+            parallaxScrollingScale: 0.9,
+            parallaxScrollingOffset: 50,
+          }}
+        />
+      </View>
     </>
   );
 }
@@ -63,5 +106,32 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+  searchWrapper: {
+    padding: 16,
+    width: "100%",
+    position: "absolute",
+    top: 40,
+  },
+  carouselWrapper: {
+    position: "absolute",
+    bottom: 0,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 0,
+    height: 44,
+    paddingLeft: 12,
+
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  partners: {
+    position: "absolute",
+    bottom: 20,
   },
 });

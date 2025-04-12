@@ -4,14 +4,8 @@ export const PARTNERS_MOCK: PartnerDto[] = [
   {
     id: "0",
     name: "Papa Johns",
-    workStartAt: {
-      hours: 10,
-      minutes: 0,
-    },
-    workEndAt: {
-      hours: 23,
-      minutes: 0,
-    },
+    workStartAt: "2025-03-24T09:00:00.000Z",
+    workEndAt: "2025-03-24T23:00:00.000Z",
     logoUrl:
       "https://cdn.freebiesupply.com/logos/large/2x/papa-johns-pizza-1-logo-svg-vector.svg",
     backgroundUrl:
@@ -32,14 +26,8 @@ export const PARTNERS_MOCK: PartnerDto[] = [
   {
     id: "1",
     name: "KFC",
-    workStartAt: {
-      hours: 9,
-      minutes: 0,
-    },
-    workEndAt: {
-      hours: 23,
-      minutes: 0,
-    },
+    workStartAt: "2025-03-24T09:00:00.000Z",
+    workEndAt: "2025-03-24T23:00:00.000Z",
     logoUrl: "https://pngimg.com/d/kfc_PNG13.png",
     backgroundUrl: "https://legacy.reactjs.org/logo-og.png",
     rating: 4.3,
@@ -58,14 +46,8 @@ export const PARTNERS_MOCK: PartnerDto[] = [
   {
     id: "2",
     name: "Starbucks",
-    workStartAt: {
-      hours: 8,
-      minutes: 0,
-    },
-    workEndAt: {
-      hours: 23,
-      minutes: 0,
-    },
+    workStartAt: "2025-03-24T09:00:00.000Z",
+    workEndAt: "2025-03-24T23:00:00.000Z",
     logoUrl:
       "https://cdn.freebiesupply.com/images/large/2x/starbucks-logo-black-and-white.png",
     backgroundUrl:
@@ -86,14 +68,8 @@ export const PARTNERS_MOCK: PartnerDto[] = [
   {
     id: "3",
     name: "Burger King",
-    workStartAt: {
-      hours: 11,
-      minutes: 0,
-    },
-    workEndAt: {
-      hours: 23,
-      minutes: 0,
-    },
+    workStartAt: "2025-03-24T09:00:00.000Z",
+    workEndAt: "2025-03-24T23:00:00.000Z",
     logoUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/1012px-Burger_King_logo_%281999%29.svg.png",
     backgroundUrl: "https://legacy.reactjs.org/logo-og.png",

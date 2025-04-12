@@ -5,6 +5,7 @@ import {
   Image,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Pressable,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // For icons
 import styles from "./styles";
@@ -12,6 +13,7 @@ import { Partner } from "../../types";
 import { formatNumber } from "@/utils/number";
 import { router } from "expo-router";
 import { usePartner } from "../../providers/partners-provider";
+import { format as formatDate } from "date-fns/format";
 
 interface PartnerCardProps {
   partner: Partner;
@@ -20,11 +22,22 @@ interface PartnerCardProps {
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
   const { setPartner } = usePartner();
 
+  function renderSchedule() {
+    const timeStart = formatDate(partner.workStartAt, "HH:mm");
+    const timeEnd = formatDate(partner.workEndAt, "HH:mm");
+
+    return (
+      <Text style={styles.time}>
+        {timeStart} - {timeEnd}
+      </Text>
+    );
+  }
+
   return (
-    <TouchableWithoutFeedback
+    <Pressable
       onPress={() => {
         setPartner(partner);
-        router.push(`/partners/${partner.id}`);
+        router.navigate(`/partners/${partner.id}`);
       }}
     >
       <View style={styles.card}>
@@ -54,7 +67,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               color="#555"
             />
             <Text style={styles.boldText}>Oggi</Text>
-            <Text style={styles.time}>10:00 - 22:00</Text>
+            {renderSchedule()}
           </View>
 
           <View style={styles.row}>
@@ -63,7 +76,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               size={16}
               color="#555"
             />
-            <Text style={styles.distance}>{partner.distance} da te!</Text>
+            <Text style={styles.distance}>{partner.distance} km</Text>
           </View>
 
           <View style={styles.priceSection}>
@@ -86,7 +99,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
           </View>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+    </Pressable>
   );
 };
 

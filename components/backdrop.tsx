@@ -1,10 +1,25 @@
-import React, { useRef } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import { useSharedValue } from "react-native-reanimated";
 
-const { height } = Dimensions.get("window");
-const MAX_TRANSLATE_Y = -height + 50; // Maximum height the sheet can be dragged up
-const MIN_TRANSLATE_Y = -100; // Minimum height the sheet can be dragged down
+export default function Backdrop() {
+  const translateY = useSharedValue(0);
 
-const CustomBottomSheet = () => {};
+  const panGesture = Gesture.Pan()
+    .onStart((e) => {})
+    .onUpdate((e) => {
+      translateY.value = e.translationY;
+    });
 
-export default CustomBottomSheet;
+  return (
+    <GestureHandlerRootView>
+      <GestureDetector gesture={panGesture}>
+        <View style={{ width: 30, height: 30, backgroundColor: "red" }}></View>
+      </GestureDetector>
+    </GestureHandlerRootView>
+  );
+}

@@ -3,14 +3,8 @@ import type { Dayjs } from "dayjs";
 export interface Partner {
   id: string;
   name: string;
-  workStartAt: {
-    hours: number;
-    minutes: number;
-  };
-  workEndAt: {
-    hours: number;
-    minutes: number;
-  };
+  workStartAt: Date;
+  workEndAt: Date;
   rating: number;
   price: number;
   logoUrl?: string;

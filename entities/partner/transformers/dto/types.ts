@@ -1,14 +1,8 @@
 export interface PartnerDto {
   id: string;
   name: string;
-  workStartAt: {
-    hours: number;
-    minutes: number;
-  };
-  workEndAt: {
-    hours: number;
-    minutes: number;
-  };
+  workStartAt: string;
+  workEndAt: string;
   rating: number;
   logoUrl?: string;
   backgroundUrl?: string;

@@ -25,7 +25,9 @@ export default function PartnersListScreen() {
         contentContainerStyle={styles.container}
         data={partners}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PartnerCard partner={item} />}
+        renderItem={({ item, index }) => (
+          <PartnerCard partner={item} key={index} />
+        )}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

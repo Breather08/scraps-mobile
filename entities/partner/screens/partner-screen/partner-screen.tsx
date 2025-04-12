@@ -8,9 +8,9 @@ import {
 import styles from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { formatTime } from "@/utils/time";
+import { format as formatDate } from "date-fns/format";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import OrderCounter from "../../components/order-counter";
 import { formatNumber } from "@/utils/number";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,10 +30,10 @@ export default function PartnerScreen() {
   function renderSchedule() {
     if (!partner) return "";
 
-    return `${formatTime(
-      partner.workStartAt.hours,
-      partner.workStartAt.minutes
-    )} - ${formatTime(partner.workEndAt.hours, partner.workEndAt.minutes)}`;
+    const timeStart = formatDate(partner.workStartAt, "HH:mm");
+    const timeEnd = formatDate(partner.workEndAt, "HH:mm");
+
+    return `${timeStart} - ${timeEnd}`;
   }
 
   return (
