@@ -45,23 +45,6 @@ export default function PartnersListScreen() {
   
   // Animation values
   const searchInputRef = useRef<TextInput>(null);
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 70, 90],
-    outputRange: [1, 0.7, 0],
-    extrapolate: 'clamp'
-  });
-  
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [0, -120],
-    extrapolate: 'clamp'
-  });
-
-  const searchBarTranslateY = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [0, -68],
-    extrapolate: 'clamp'
-  });
   
   useEffect(() => {
     makePartnersRequest();
@@ -70,7 +53,6 @@ export default function PartnersListScreen() {
   useEffect(() => {
     if (partners.length > 0) {
       filterPartners(activeFilter);
-      // Set featured partners (could be top rated, closest, etc.)
       const featured = [...partners]
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 5);
@@ -104,26 +86,27 @@ export default function PartnersListScreen() {
     }
   }
 
-  function filterPartners(filter: string) {
-    setActiveFilter(filter);
+  function getFilteredPartners(filter: string) {
     let filtered = [...partners];
 
     switch (filter) {
       case "nearby":
-        filtered = filtered.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-        break;
+        return filtered.sort((a, b) => (a.distance || 0) - (b.distance || 0));
       case "rating":
-        filtered = filtered.sort((a, b) => b.rating - a.rating);
-        break;
+        return filtered.sort((a, b) => b.rating - a.rating);
       case "new":
-        // Simulate 'new' partners by taking first few
-        filtered = [...partners].slice(0, 3);
-        break;
+        return [...partners].slice(0, 3);
       case "price":
-        filtered = filtered.sort((a, b) => a.price - b.price);
-        break;
+        return filtered.sort((a, b) => a.price - b.price);
     }
 
+    return filtered;
+  }
+    
+
+  function filterPartners(filter: string) {
+    setActiveFilter(filter);
+    const filtered = getFilteredPartners(filter);
     setFilteredPartners(filtered);
   }
 
