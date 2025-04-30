@@ -1,10 +1,9 @@
-import { PartnersProvider } from "@/entities/partner/providers/partners-provider";
 import { Stack } from "expo-router";
 
 export default function index() {
   return (
     <Stack>
-      <Stack.Screen name="index" />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="[id]/index"
         options={{
@@ -14,7 +13,7 @@ export default function index() {
       <Stack.Screen
         name="[id]/checkout"
         options={{
-          title: "Checkout",
+          title: "Оформление заказа",
         }}
       />
     </Stack>

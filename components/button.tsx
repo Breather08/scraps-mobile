@@ -1,15 +1,28 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 export interface ButtonProps {
   children: React.ReactNode | React.ReactNode[];
   onPress: () => void;
+  disabled?: boolean;
+  style?: any;
 }
 
-export default function Button({ children, onPress }: ButtonProps) {
+export default function Button({ children, onPress, disabled = false, style }: ButtonProps) {
   return (
-    <Pressable style={styles.button} onPress={onPress}>
-      {children}
+    <Pressable 
+      style={({ pressed }) => [
+        styles.button,
+        disabled && styles.buttonDisabled,
+        pressed && !disabled && styles.buttonPressed,
+        style
+      ]} 
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <View style={styles.innerContainer}>
+        {children}
+      </View>
     </Pressable>
   );
 }
@@ -23,4 +36,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     color: "#fff",
   },
+  buttonDisabled: {
+    backgroundColor: "#a8e6bc",
+    opacity: 0.7,
+  },
+  buttonPressed: {
+    backgroundColor: "#27ae60",
+  },
+  innerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  }
 });

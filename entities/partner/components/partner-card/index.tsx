@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Pressable,
+  Animated,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // For icons
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 import { Partner } from "../../types";
 import { formatNumber } from "@/utils/number";
@@ -22,14 +22,25 @@ interface PartnerCardProps {
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
   const { setPartner } = usePartner();
 
+  // Determine if partner is currently open
+  const currentHour = new Date().getHours();
+  const startHour = new Date(partner.workStartAt).getHours();
+  const endHour = new Date(partner.workEndAt).getHours();
+  const isOpen = currentHour >= startHour && currentHour < endHour;
+  
   function renderSchedule() {
     const timeStart = formatDate(partner.workStartAt, "HH:mm");
     const timeEnd = formatDate(partner.workEndAt, "HH:mm");
 
     return (
-      <Text style={styles.time}>
-        {timeStart} - {timeEnd}
-      </Text>
+      <>
+        <Text style={styles.time}>
+          {timeStart} - {timeEnd}
+        </Text>
+        <View style={[styles.statusIndicator, isOpen ? styles.statusOpen : styles.statusClosed]}>
+          <Text style={styles.statusText}>{isOpen ? 'Открыто' : 'Закрыто'}</Text>
+        </View>
+      </>
     );
   }
 
@@ -39,60 +50,78 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         setPartner(partner);
         router.navigate(`/partners/${partner.id}`);
       }}
+      style={({ pressed }) => [
+        { transform: [{ scale: pressed ? 0.98 : 1 }], opacity: pressed ? 0.9 : 1 }
+      ]}
+      android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
     >
       <View style={styles.card}>
         <View style={styles.imageContainer}>
-          <Image source={{ uri: partner.backgroundUrl }} style={styles.image} />
-          <Image source={{ uri: partner.logoUrl }} style={styles.logo} />
-          <TouchableOpacity style={styles.favoriteIcon}>
+          <Image 
+            source={{ uri: partner.backgroundUrl || 'https://via.placeholder.com/400x200/f0f0f0/cccccc' }} 
+            style={styles.image} 
+            resizeMode="cover"
+          />
+          <Image 
+            source={{ uri: partner.logoUrl || 'https://via.placeholder.com/80x40/ffffff/999999' }} 
+            style={styles.logo} 
+            resizeMode="contain"
+          />
+          <TouchableOpacity 
+            style={styles.favoriteIcon}
+            activeOpacity={0.7}
+          >
             <MaterialCommunityIcons
               name="heart-outline"
               size={22}
-              color="#555"
+              color="#2ecc71"
             />
           </TouchableOpacity>
         </View>
 
         <View style={styles.details}>
-          <View style={styles.row}>
-            <Text className="text-3xl">{partner.name}</Text>
-            <MaterialCommunityIcons name="star" size={16} color="#FFC107" />
-            <Text style={styles.rating}>{partner.rating}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{partner.name}</Text>
+            <View style={styles.ratingContainer}>
+              <MaterialCommunityIcons name="star" size={16} color="#FFC107" />
+              <Text style={styles.rating}>{partner.rating.toFixed(1)}</Text>
+            </View>
           </View>
+
+          <View style={styles.divider} />
 
           <View style={styles.row}>
             <MaterialCommunityIcons
               name="clock-outline"
-              size={16}
+              size={18}
               color="#555"
             />
-            <Text style={styles.boldText}>Oggi</Text>
+            <Text style={styles.boldText}>Сегодня:</Text>
             {renderSchedule()}
           </View>
 
           <View style={styles.row}>
             <MaterialCommunityIcons
               name="map-marker-distance"
-              size={16}
+              size={18}
               color="#555"
             />
-            <Text style={styles.distance}>{partner.distance} km</Text>
+            <Text style={styles.distance}>
+              <Text style={styles.boldText}>{partner.distance} км</Text> от вас
+            </Text>
           </View>
 
           <View style={styles.priceSection}>
-            <TouchableOpacity style={styles.cartButton}>
-              <MaterialCommunityIcons
-                name="shopping-outline"
-                size={16}
+            <View style={styles.priceTag}>
+              <Ionicons
+                name="pricetag"
+                size={18}
                 color="white"
               />
-              <Text style={styles.cartText}>1</Text>
-            </TouchableOpacity>
-            <View style={styles.priceTag}>
               <Text style={styles.price}>
                 {formatNumber(partner.price, {
                   suffix: "₸",
-                  precision: 2,
+                  precision: 0,
                 })}
               </Text>
             </View>

@@ -1,20 +1,32 @@
-import { View, Text, Pressable } from "react-native";
-import OrderCounter from "../order-counter";
-import { formatNumber } from "@/utils/number";
-import { useState } from "react";
-import { Partner } from "../../types";
-import { Separator } from "@/components/separator";
-import styles from "./styles";
-import Button from "@/components/button";
-import { router } from "expo-router";
+import { View, Text } from 'react-native';
+import { useState } from 'react';
+import { router } from 'expo-router';
+
+import { formatNumber } from '@/utils/number';
+import { Separator } from '@/components/separator';
+import Button from '@/components/button';
+
+import OrderCounter from '../order-counter';
+import { Partner } from '../../types';
+import styles from './styles';
+
+interface BoxOption {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  popular?: boolean;
+}
 
 export interface OrderAmountInputProps {
   partner: Partner;
+  selectedOption?: BoxOption;
 }
 
-export default function OrderAmountInput({ partner }: OrderAmountInputProps) {
-  const [boxAmount, setBoxAmount] = useState(0);
+export default function OrderAmountInput({ partner, selectedOption }: OrderAmountInputProps) {
+  const [boxAmount, setBoxAmount] = useState(1);
   const availableBoxes = 5; // TODO: Get from partners
+  const price = selectedOption?.price || partner.price;
 
   function proceed() {
     router.push(`/partners/${partner.id}/checkout`);
@@ -33,7 +45,7 @@ export default function OrderAmountInput({ partner }: OrderAmountInputProps) {
       <Separator spacing={24} />
       <Button onPress={proceed}>
         <Text style={styles.btn}>
-          К оплате {formatNumber(boxAmount * partner.price, { suffix: "₸" })}
+          К оплате {formatNumber(boxAmount * price, { suffix: "₸" })}
         </Text>
       </Button>
     </View>
