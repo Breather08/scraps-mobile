@@ -24,6 +24,7 @@ import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@/providers/auth-provider";
 import { useRouter } from "expo-router";
 import { BlurView } from "expo-blur";
+import { supabase } from "@/services/supabase";
 
 export default function PartnersListScreen() {
   const { user } = useAuth();

@@ -164,10 +164,94 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2ecc71',
   },
+  badgeOutlineDanger: {
+    borderColor: '#ff6b6b',
+  },
+  badgeOutlineWarning: {
+    borderColor: '#FFC107',
+  },
   badgeTextOutline: {
     color: '#2ecc71',
     fontSize: 12,
     fontWeight: '600',
+  },
+  badgeTextDanger: {
+    color: '#ff6b6b',
+  },
+  badgeTextWarning: {
+    color: '#FFC107',
+  },
+  
+  // Mystery Box Counter
+  boxCounterContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f4faf6',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#d7f0e2',
+  },
+  boxCounterIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#2ecc71',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  boxCounterContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  boxCounterTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  boxCounterRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  boxCounterValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2ecc71',
+    marginRight: 6,
+  },
+  boxCounterLabel: {
+    fontSize: 16,
+    color: '#555',
+  },
+  boxCounterHint: {
+    fontSize: 13,
+    color: '#777',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  
+  // No Boxes Message
+  noBoxesContainer: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffefef',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  noBoxesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ff6b6b',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  noBoxesMessage: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   
   // Details

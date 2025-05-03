@@ -14,7 +14,7 @@ import {
   Keyboard,
   ScrollView,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, Callout, Region } from "react-native-maps";
+import MapView, { Marker, Callout, Region, UrlTile } from "react-native-maps";
 import { BlurView } from 'expo-blur';
 import {
   getCurrentPositionAsync,
@@ -248,19 +248,25 @@ export default function MapScreen() {
       {/* Map View */}
       <MapView
         ref={mapRef}
-        provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
           latitude: location?.coords.latitude || DEFAULT_COORDINATES.latitude,
           longitude: location?.coords.longitude || DEFAULT_COORDINATES.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.015,
         }}
         showsUserLocation
         showsMyLocationButton={false}
         showsCompass
         onMapReady={() => setMapReady(true)}
       >
+        {/* OpenStreetMap Tile Layer */}
+        <UrlTile 
+          urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+        />
+        
         {/* Partner Markers */}
         {markers.map((marker) => (
           <Marker
@@ -447,6 +453,7 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+    backgroundColor: "#f2efe9", // OSM background color
   },
   
   // Header styles

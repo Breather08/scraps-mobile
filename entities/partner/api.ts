@@ -1,6 +1,6 @@
 import { supabase } from "../../services/supabase";
 import type { Database } from "../../database.types";
-import type { Partner } from "./types";
+import type { Partner, BoxesInfo, BoxType, PriceRange } from "./types";
 
 type BusinessProfileRow = Database["public"]["Tables"]["business_profiles"]["Row"];
 type FoodPackageRow = Database["public"]["Tables"]["food_packages"]["Row"];
@@ -13,6 +13,7 @@ function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: num
   try {
     // Parse operating hours if available
     if (row.operating_hours) {
+      console.log('Raw operating hours', row.operating_hours); 
       operatingHours = JSON.parse(row.operating_hours as string) as OperatingHours;
     }
   } catch (e) {
@@ -38,6 +39,34 @@ function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: num
     workEndAt = new Date(today.setHours(closeHours, closeMinutes, 0, 0));
   }
   
+  // Parse boxes info if available, or use default values
+  const defaultBoxesInfo: BoxesInfo = {
+    box_types: [{
+      name: "Standard Mystery Box",
+      count: 0,
+      type_id: "default",
+      description: "A surprise selection of surplus food items",
+      price_range: {
+        min: 700,
+        max: 2500
+      },
+      typical_items: ["Mixed food items"],
+      dietary_options: ["Mixed"]
+    }],
+    last_updated: new Date().toISOString(),
+    total_available: 0
+  };
+  
+  let boxesInfo: BoxesInfo = defaultBoxesInfo;
+  try {
+      console.log('Raw boxes info', row.boxes_info);
+    if (row.boxes_info) {
+      boxesInfo = JSON.parse(row.boxes_info as string) as BoxesInfo;
+    }
+  } catch (e) {
+    console.warn("Failed to parse boxes info:", e);
+  }
+  
   return {
     id: row.id,
     name: row.business_name,
@@ -53,6 +82,7 @@ function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: num
       latitude: coordinates[1] ?? 0,
     },
     distance: 0, // Will be calculated client-side based on user location
+    boxesInfo,
   };
 }
 
@@ -66,6 +96,9 @@ export const fetchPartners = async (): Promise<Partner[]> => {
     .select("*")
     .eq("is_active", true);
 
+  console.log('BUSINESS_PROFILES', businessProfiles);
+
+
   if (profilesError) {
     throw profilesError;
   }
@@ -75,26 +108,26 @@ export const fetchPartners = async (): Promise<Partner[]> => {
   }
 
   // Then fetch the minimum price from food_packages for each business
-  const businessIds = businessProfiles.map(profile => profile.id);
-  const { data: packagePrices, error: pricesError } = await supabase
-    .from("food_packages")
-    .select("business_id, price")
-    .in("business_id", businessIds)
-    .order("price", { ascending: true });
+  // const businessIds = businessProfiles.map(profile => profile.id);
+  // const { data: packagePrices, error: pricesError } = await supabase
+  //   .from("food_packages")
+  //   .select("business_id, price")
+  //   .in("business_id", businessIds)
+  //   .order("price", { ascending: true });
 
-  if (pricesError) {
-    // Log the error but continue with the available data
-    console.error("Error fetching package prices:", pricesError);
-  }
+  // if (pricesError) {
+  //   // Log the error but continue with the available data
+  //   console.error("Error fetching package prices:", pricesError);
+  // }
 
   // Create a map of business_id to lowest price
   const priceMap = new Map<string, number>();
-  packagePrices?.forEach(pkg => {
-    // Only set the price if it's not already set or if it's lower than the current price
-    if (!priceMap.has(pkg.business_id) || pkg.price < priceMap.get(pkg.business_id)!) {
-      priceMap.set(pkg.business_id, pkg.price);
-    }
-  });
+  // packagePrices?.forEach(pkg => {
+  //   // Only set the price if it's not already set or if it's lower than the current price
+  //   if (!priceMap.has(pkg.business_id) || pkg.price < priceMap.get(pkg.business_id)!) {
+  //     priceMap.set(pkg.business_id, pkg.price);
+  //   }
+  // });
 
   // Map the business profiles to partner objects with prices and add distance calculation
   return businessProfiles.map(profile => {
@@ -135,8 +168,8 @@ export const fetchPartnerById = async (partnerId: string): Promise<Partner | nul
     .select("price")
     .eq("business_id", partnerId)
     .order("price", { ascending: true })
-    .limit(1);
-    
+    .limit(1);  
+
   const price = packageData && packageData.length > 0 ? packageData[0].price : 0;
   
   return mapBusinessProfileToPartner(data, price);

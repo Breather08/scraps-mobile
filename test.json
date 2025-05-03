@@ -1,0 +1,30 @@
+{
+    "friday": {
+        "close": "00:00",
+        "open": "12:00"
+    },
+    "monday": {
+        "close": "23:00",
+        "open": "12:00"
+    },
+    "saturday": {
+        "close": "00:00",
+        "open": "12:00"
+    },
+    "sunday": {
+        "close": "22:00",
+        "open": "12:00"
+    },
+    "thursday": {
+        "close": "23:00",
+        "open": "12:00"
+    },
+    "tuesday": {
+        "close": "23:00",
+        "open": "12:00"
+    },
+    "wednesday": {
+        "close": "23:00",
+        "open": "12:00"
+    }
+}

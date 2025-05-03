@@ -1,5 +1,26 @@
 import type { Dayjs } from "dayjs";
 
+export interface PriceRange {
+  min: number;
+  max: number;
+}
+
+export interface BoxType {
+  name: string;
+  count: number;
+  type_id: string;
+  description: string;
+  price_range: PriceRange;
+  typical_items: string[];
+  dietary_options: string[];
+}
+
+export interface BoxesInfo {
+  box_types: BoxType[];
+  last_updated: string;
+  total_available: number;
+}
+
 export interface Partner {
   id: string;
   name: string;
@@ -16,4 +37,5 @@ export interface Partner {
     latitude: number;
   };
   distance?: number;
+  boxesInfo: BoxesInfo;
 }

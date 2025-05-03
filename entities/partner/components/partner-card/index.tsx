@@ -28,6 +28,17 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
   const endHour = new Date(partner.workEndAt).getHours();
   const isOpen = currentHour >= startHour && currentHour < endHour;
   
+  // Get the box count from the boxesInfo.total_available field
+  const boxCount = partner.boxesInfo.total_available;
+  
+  // Determine available status based on the box count
+  let availabilityStatus: 'available' | 'low' | 'sold-out' = 'available';
+  if (boxCount <= 0) {
+    availabilityStatus = 'sold-out';
+  } else if (boxCount <= 3) {
+    availabilityStatus = 'low';
+  }
+  
   function renderSchedule() {
     const timeStart = formatDate(partner.workStartAt, "HH:mm");
     const timeEnd = formatDate(partner.workEndAt, "HH:mm");
@@ -50,9 +61,9 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         setPartner(partner);
         router.navigate(`/partners/${partner.id}`);
       }}
-      style={({ pressed }) => [
-        { transform: [{ scale: pressed ? 0.98 : 1 }], opacity: pressed ? 0.9 : 1 }
-      ]}
+      // style={({ pressed }) => [
+      //   { transform: [{ scale: pressed ? 0.98 : 1 }], opacity: pressed ? 0.9 : 1 }
+      // ]}
       android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
     >
       <View style={styles.card}>
@@ -77,6 +88,18 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               color="#2ecc71"
             />
           </TouchableOpacity>
+          
+          {/* Mystery Boxes Count Badge */}
+          <View style={[styles.boxesCountBadge, availabilityStatus === 'sold-out' && styles.noBoxesAvailable]}>
+            <MaterialCommunityIcons
+              name="package-variant"
+              size={16}
+              color="white"
+            />
+            <Text style={styles.boxesCountText}>
+              {availabilityStatus === 'sold-out' ? 'Нет' : boxCount}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.details}>
@@ -123,6 +146,18 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
                   suffix: "₸",
                   precision: 0,
                 })}
+              </Text>
+            </View>
+            
+            {/* Mystery Box Availability Indicator */}
+            <View style={[styles.boxAvailability, availabilityStatus === 'sold-out' && styles.boxUnavailable]}>
+              <MaterialCommunityIcons
+                name="cube-outline"
+                size={18}
+                color={availabilityStatus === 'available' ? "#2ecc71" : "#ff6b6b"}
+              />
+              <Text style={[styles.boxAvailabilityText, availabilityStatus === 'sold-out' && styles.boxUnavailableText]}>
+                {availabilityStatus === 'available' ? 'Доступно' : 'Нет боксов'}
               </Text>
             </View>
           </View>

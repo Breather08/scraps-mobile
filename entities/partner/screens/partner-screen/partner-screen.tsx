@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { 
   ActivityIndicator,
   Animated,
@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { format as formatDate } from 'date-fns';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   BottomSheetBackdrop,
@@ -25,6 +25,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { formatNumber } from '@/utils/number';
 import Button from '@/components/button';
 import { useAuth } from '@/providers/auth-provider';
+import { supabase } from '@/services/supabase';
 
 import { usePartner } from '../../providers/partners-provider';
 import OrderAmountInput from '../../components/order-amount-input';
@@ -39,14 +40,59 @@ interface BoxOption {
 }
 
 export default function PartnerScreen() {
-  const { partner } = usePartner();
+  const { partner, setPartner } = usePartner();
   const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
+  const router = useRouter();
   const [selectedBoxOption, setSelectedBoxOption] = useState<string>('standard');
   const [loading, setLoading] = useState(false);
-  const [remainingBoxes, setRemainingBoxes] = useState(5);
+  const [remainingBoxes, setRemainingBoxes] = useState(partner ? partner.boxesInfo.total_available : 0);
   const [showReviews, setShowReviews] = useState(false);
   const { width } = useWindowDimensions();
+  
+  // Set up real-time subscription for this specific partner's boxes info
+  useEffect(() => {
+    if (!partner?.id) return;
+    
+    // Initialize the remaining boxes count from the partner object
+    setRemainingBoxes(partner.boxesInfo.total_available);
+    
+    // Subscribe to changes on this specific partner's boxes info
+    const subscription = supabase
+      .channel(`partner_boxes_${partner.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'business_profiles',
+        filter: `id=eq.${partner.id}`
+      }, (payload) => {
+        try {
+          // Parse the updated boxes_info from the payload
+          const updatedBoxesInfo = payload.new.boxes_info ? 
+            JSON.parse(payload.new.boxes_info as string) : 
+            { total_available: 0 };
+            
+          // Update the box count in state
+          setRemainingBoxes(updatedBoxesInfo.total_available);
+          
+          // Also update the partner object to keep it in sync
+          if (partner) {
+            setPartner({
+              ...partner,
+              boxesInfo: updatedBoxesInfo
+            });
+          }
+        } catch (e) {
+          console.warn("Failed to parse updated boxes info:", e);
+        }
+      })
+      .subscribe();
+
+    // Clean up subscription when component unmounts or partner changes
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [partner?.id]);
   
   // Animation values
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -264,11 +310,56 @@ export default function PartnerScreen() {
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>Magic Box</Text>
               </View>
-              <View style={[styles.badge, styles.badgeOutline]}>
-                <Text style={styles.badgeTextOutline}>{remainingBoxes} осталось</Text>
+              <View style={[
+                styles.badge, 
+                styles.badgeOutline, 
+                remainingBoxes <= 0 ? styles.badgeOutlineDanger : remainingBoxes < 3 ? styles.badgeOutlineWarning : null
+              ]}>
+                <MaterialCommunityIcons 
+                  name="package-variant" 
+                  size={16} 
+                  color={remainingBoxes <= 0 ? "#ff6b6b" : remainingBoxes < 3 ? "#FFC107" : "#2ecc71"} 
+                  style={{marginRight: 4}} 
+                />
+                <Text style={[
+                  styles.badgeTextOutline,
+                  remainingBoxes <= 0 ? styles.badgeTextDanger : remainingBoxes < 3 ? styles.badgeTextWarning : null
+                ]}>
+                  {remainingBoxes <= 0 ? "Нет боксов" : `${remainingBoxes} осталось`}
+                </Text>
               </View>
             </View>
 
+            {/* Mystery Box Counter - More Prominent */}
+            {remainingBoxes > 0 && (
+              <View style={styles.boxCounterContainer}>
+                <View style={styles.boxCounterIconContainer}>
+                  <MaterialCommunityIcons name="package-variant" size={28} color="#fff" />
+                </View>
+                <View style={styles.boxCounterContent}>
+                  <Text style={styles.boxCounterTitle}>Доступные боксы</Text>
+                  <View style={styles.boxCounterRow}>
+                    <Text style={styles.boxCounterValue}>{remainingBoxes}</Text>
+                    <Text style={styles.boxCounterLabel}>
+                      {remainingBoxes === 1 ? 'бокс' : 
+                       remainingBoxes < 5 ? 'бокса' : 'боксов'}
+                    </Text>
+                  </View>
+                  <Text style={styles.boxCounterHint}>
+                    {remainingBoxes < 3 ? 'Осталось мало, торопитесь!' : 'Доступно к заказу'}
+                  </Text>
+                </View>
+              </View>
+            )}
+            
+            {remainingBoxes <= 0 && (
+              <View style={styles.noBoxesContainer}>
+                <Ionicons name="alert-circle" size={32} color="#ff6b6b" />
+                <Text style={styles.noBoxesTitle}>Боксы закончились</Text>
+                <Text style={styles.noBoxesMessage}>К сожалению, все боксы распроданы. Попробуйте завтра или выберите другого партнера.</Text>
+              </View>
+            )}
+            
             {/* Details section */}
             <View style={styles.detailsSection}>
               <View style={styles.detailRow}>

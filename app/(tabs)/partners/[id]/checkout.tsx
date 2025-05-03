@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Dimensions } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, MapViewProps } from "react-native-maps";
+import MapView, { Marker, Polyline, UrlTile, MapViewProps } from "react-native-maps";
 import { usePartner } from "@/entities/partner/providers/partners-provider";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
@@ -14,7 +14,7 @@ import Informer from "@/components/informer";
 import { formatNumber } from "@/utils/number";
 import Button from "@/components/button";
 import { StatusBar } from "expo-status-bar";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/providers/auth-provider";
 
 type PaymentMethod = "card" | "cash" | "applePay" | "googlePay";
@@ -34,11 +34,21 @@ export default function CheckoutScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("card");
+  
+  // Get parameters from the route
+  const params = useLocalSearchParams();
+  const boxType = params.boxType as string || 'standard';
+  const boxName = params.boxName as string || 'Стандартный';
+  const boxPrice = Number(params.boxPrice as string) || 0;
+  const boxQuantity = Number(params.boxQuantity as string) || 1;
+  const boxDescription = params.boxDescription as string || '';
+  
+  // Create items array from route params instead of mock data
   const [items, setItems] = useState<CheckoutItem[]>([
-    { id: '1', name: 'Бокс стандарт', price: 1910, quantity: 2 }
+    { id: boxType, name: boxName, price: boxPrice, quantity: boxQuantity }
   ]);
+  
   const [route, setRoute] = useState<{points: {latitude: number, longitude: number}[], distance: number, duration: number} | null>(null);
-  const [expandedMap, setExpandedMap] = useState(false);
   
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -170,11 +180,23 @@ export default function CheckoutScreen() {
   }
 
   async function confirmOrder() {
-    if (!partner || !user) {
-      Alert.alert("Ошибка", "Не удалось оформить заказ. Пожалуйста, войдите в аккаунт.");
+    if (!partner || !user || isProcessing) return;
+    
+    // Check if quantity is valid
+    if (boxQuantity <= 0) {
+      Alert.alert("Ошибка", "Пожалуйста, выберите количество боксов.");
       return;
     }
-
+    
+    // Check if there are enough boxes available
+    if (boxQuantity > partner.boxesInfo.total_available) {
+      Alert.alert(
+        "Недостаточно боксов", 
+        `Доступно только ${partner.boxesInfo.total_available} шт. Пожалуйста, уменьшите количество.`
+      );
+      return;
+    }
+    
     try {
       setIsProcessing(true);
       
@@ -256,25 +278,35 @@ export default function CheckoutScreen() {
             <Text style={styles.blockTitle}>Детали заказа</Text>
             
             {/* Map section with route */}
-            <View style={[styles.mapWrapper, expandedMap && styles.mapWrapperExpanded]}>
+            <View style={[styles.mapWrapper]}>
               <MapView
                 ref={mapRef}
-                provider={PROVIDER_GOOGLE}
-                style={[styles.map, expandedMap && styles.mapExpanded]}
+                style={styles.map}
                 initialRegion={{
                   latitude: partner.coords.latitude,
                   longitude: partner.coords.longitude,
                   latitudeDelta: 0.01,
                   longitudeDelta: 0.01,
                 }}
-                showsUserLocation
-                showsMyLocationButton
-                showsCompass
-                showsScale
-                toolbarEnabled={expandedMap}
-                zoomEnabled
-                rotateEnabled
+                showsUserLocation={false}
+                showsMyLocationButton={false}
+                showsCompass={false}
+                showsScale={false}
+                toolbarEnabled={false}
+                zoomEnabled={false}
+                rotateEnabled={false}
+                scrollEnabled={false}
+                pitchEnabled={false}
+                moveOnMarkerPress={false}
+                liteMode={true}
               >
+                {/* OpenStreetMap Tile Layer */}
+                <UrlTile 
+                  urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  maximumZ={19}
+                  flipY={false}
+                />
+                
                 {userLocation?.coords && (
                   <CurrentLocationMarker coordinate={userLocation.coords} />
                 )}
@@ -295,34 +327,6 @@ export default function CheckoutScreen() {
                   />
                 )}
               </MapView>
-              
-              {/* Map control buttons */}
-              <View style={styles.mapControls}>
-                <TouchableOpacity 
-                  style={styles.mapControlButton}
-                  onPress={() => setExpandedMap(!expandedMap)}
-                >
-                  <Ionicons 
-                    name={expandedMap ? "contract-outline" : "expand-outline"} 
-                    size={20} 
-                    color="#333" 
-                  />
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.mapControlButton}
-                  onPress={() => {
-                    if (userLocation?.coords && partner) {
-                      mapRef.current?.fitToCoordinates([userLocation.coords, partner.coords], {
-                        edgePadding: { top: 70, right: 70, bottom: 70, left: 70 },
-                        animated: true,
-                      });
-                    }
-                  }}
-                >
-                  <Ionicons name="locate-outline" size={20} color="#333" />
-                </TouchableOpacity>
-              </View>
             </View>
             
             {/* Route info section */}
@@ -438,93 +442,58 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 12,
-    paddingBottom: 30,
+    padding: 16,
+    backgroundColor: "#f5f5f5",
   },
   scrollView: {
-    backgroundColor: '#f8f8f8',
+    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-  },
-  backButton: {
-    padding: 8,
-  },
-  informer: {},
   blockTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+    color: "#333",
   },
   orderInfo: {
-    marginTop: 8,
-  },
-  partnerName: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#666',
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
   },
   orderItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   orderItemInfo: {
     flex: 1,
   },
   orderItemName: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 4,
   },
   orderItemPrice: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
-  quantityControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  quantityButton: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f8f8f8',
-  },
-  quantityButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  partnerName: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#666",
   },
   quantityText: {
     width: 30,
@@ -535,59 +504,34 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   map: {
     width: "100%",
     height: 200,
-  },
-  mapExpanded: {
-    height: 350,
-  },
-  // Remove duplicate mapWrapper definition as it's already defined above
-
-  mapWrapperExpanded: {
-    marginBottom: 20,
-  },
-  mapControls: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
-    flexDirection: 'column',
-    gap: 8,
-  },
-  mapControlButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    backgroundColor: "#f2efe9",
   },
   routeInfoContainer: {
     marginBottom: 16,
   },
   distanceInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#f7f7f7',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#f7f7f7",
     borderRadius: 12,
     padding: 12,
   },
   distanceInfoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 6,
   },
   distanceInfoText: {
     marginLeft: 6,
     fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   row: {
     flexDirection: "row",

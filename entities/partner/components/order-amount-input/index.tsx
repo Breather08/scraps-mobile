@@ -25,11 +25,21 @@ export interface OrderAmountInputProps {
 
 export default function OrderAmountInput({ partner, selectedOption }: OrderAmountInputProps) {
   const [boxAmount, setBoxAmount] = useState(1);
-  const availableBoxes = 5; // TODO: Get from partners
+  const availableBoxes = partner.boxesInfo.total_available;
   const price = selectedOption?.price || partner.price;
 
   function proceed() {
-    router.push(`/partners/${partner.id}/checkout`);
+    // Pass the selected box option and quantity to the checkout page using path segments
+    router.push({
+      pathname: `/partners/${partner.id}/checkout`,
+      params: {
+        boxType: selectedOption?.id || 'standard',
+        boxName: selectedOption?.name || 'Стандартный',
+        boxPrice: price.toString(),
+        boxQuantity: boxAmount.toString(),
+        boxDescription: selectedOption?.description || ''
+      }
+    } as any); // Type assertion to work around router typing limitations
   }
 
   return (
@@ -43,7 +53,7 @@ export default function OrderAmountInput({ partner, selectedOption }: OrderAmoun
       />
       <Text style={styles.available}>Доступно: {availableBoxes}</Text>
       <Separator spacing={24} />
-      <Button onPress={proceed}>
+      <Button onPress={proceed} disabled={availableBoxes <= 0}>
         <Text style={styles.btn}>
           К оплате {formatNumber(boxAmount * price, { suffix: "₸" })}
         </Text>

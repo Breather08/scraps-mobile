@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           address: string
           average_rating: number | null
+          boxes_info: Json | null
           business_name: string
           business_type: string | null
           city: string
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           address: string
           average_rating?: number | null
+          boxes_info?: Json | null
           business_name: string
           business_type?: string | null
           city?: string
@@ -43,6 +45,7 @@ export type Database = {
         Update: {
           address?: string
           average_rating?: number | null
+          boxes_info?: Json | null
           business_name?: string
           business_type?: string | null
           city?: string
@@ -573,6 +576,20 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      add_box_type: {
+        Args: {
+          business_id_param: string
+          type_id_param: string
+          name_param: string
+          description_param: string
+          count_param: number
+          price_min_param: number
+          price_max_param: number
+          typical_items_param: string[]
+          dietary_options_param: string[]
+        }
+        Returns: Json
+      }
       addauth: {
         Args: { "": string }
         Returns: boolean
@@ -651,6 +668,10 @@ export type Database = {
       bytea: {
         Args: { "": unknown } | { "": unknown }
         Returns: string
+      }
+      delete_box_type: {
+        Args: { business_id_param: string; type_id_param: string }
+        Returns: Json
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -907,6 +928,18 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_business_boxes: {
+        Args: { business_id_param: string }
+        Returns: Json
+      }
+      get_nearby_businesses: {
+        Args: { lat: number; lng: number; radius_km?: number }
+        Returns: {
+          id: string
+          business_name: string
+          distance_km: number
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
@@ -1124,6 +1157,10 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      random_astana_location: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
       }
       spheroid_in: {
         Args: { "": unknown }
@@ -2201,6 +2238,18 @@ export type Database = {
       unlockrows: {
         Args: { "": string }
         Returns: number
+      }
+      update_box_type: {
+        Args: {
+          business_id_param: string
+          type_id_param: string
+          updates: Json
+        }
+        Returns: Json
+      }
+      update_total_boxes: {
+        Args: { business_id_param: string }
+        Returns: undefined
       }
       updategeometrysrid: {
         Args: {

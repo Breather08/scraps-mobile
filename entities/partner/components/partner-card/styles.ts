@@ -199,7 +199,61 @@ const styles = StyleSheet.create({
   price: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 15,
+    fontSize: 16,
+  },
+  // Mystery boxes count badge
+  boxesCountBadge: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+    backgroundColor: "#2ecc71",
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  noBoxesAvailable: {
+    backgroundColor: "#ff6b6b",
+  },
+  boxesCountText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 13,
+    marginLeft: 4,
+  },
+  // Box availability indicator
+  boxAvailability: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(46, 204, 113, 0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  boxUnavailable: {
+    backgroundColor: "rgba(255, 107, 107, 0.1)",
+  },
+  boxAvailabilityText: {
+    fontSize: 13,
+    color: "#2ecc71",
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  boxUnavailableText: {
+    color: "#ff6b6b",
   },
 });
 
