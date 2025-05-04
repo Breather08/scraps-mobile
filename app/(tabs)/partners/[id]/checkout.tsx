@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Dimensions, Platform } from "react-native";
 import MapView, { Marker, Polyline, UrlTile, MapViewProps } from "react-native-maps";
 import { usePartner } from "@/entities/partner/providers/partners-provider";
 import { useEffect, useRef, useState, useMemo } from "react";
@@ -12,7 +12,7 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-ico
 import Island from "@/components/island";
 import Informer from "@/components/informer";
 import { formatNumber } from "@/utils/number";
-import Button from "@/components/button";
+import Button from "@/components/ui/button";
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/providers/auth-provider";
@@ -34,7 +34,7 @@ export default function CheckoutScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("card");
-  
+
   // Get parameters from the route
   const params = useLocalSearchParams();
   const boxType = params.boxType as string || 'standard';
@@ -42,14 +42,14 @@ export default function CheckoutScreen() {
   const boxPrice = Number(params.boxPrice as string) || 0;
   const boxQuantity = Number(params.boxQuantity as string) || 1;
   const boxDescription = params.boxDescription as string || '';
-  
+
   // Create items array from route params instead of mock data
   const [items, setItems] = useState<CheckoutItem[]>([
     { id: boxType, name: boxName, price: boxPrice, quantity: boxQuantity }
   ]);
-  
-  const [route, setRoute] = useState<{points: {latitude: number, longitude: number}[], distance: number, duration: number} | null>(null);
-  
+
+  const [route, setRoute] = useState<{ points: { latitude: number, longitude: number }[], distance: number, duration: number } | null>(null);
+
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = 0; // Free delivery
@@ -59,23 +59,23 @@ export default function CheckoutScreen() {
   // Calculate distance between two coordinates using Haversine formula
   function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
     return R * c; // Distance in meters
   }
-  
+
   // Calculate distance between user and partner location
   const distanceInfo = useMemo(() => {
     if (!userLocation?.coords || !partner) return null;
-    
+
     // Calculate direct distance in meters
     const distanceMeters = calculateDistance(
       userLocation.coords.latitude,
@@ -83,44 +83,44 @@ export default function CheckoutScreen() {
       partner.coords.latitude,
       partner.coords.longitude
     );
-    
+
     // Convert to kilometers with 1 decimal place
     const distance = Math.round(distanceMeters / 100) / 10;
-    
+
     // Estimate walking time (average walking speed 5km/h)
     const walkingMinutes = Math.round((distanceMeters / 1000) / 5 * 60);
-    
+
     // Estimate driving time (average urban driving speed 30km/h)
     const drivingMinutes = Math.round((distanceMeters / 1000) / 30 * 60);
-    
+
     return { distance, walkingMinutes, drivingMinutes };
   }, [userLocation, partner]);
-  
+
   // Simulate a route between two points
-  function generateRoute(start: {latitude: number, longitude: number}, end: {latitude: number, longitude: number}) {
+  function generateRoute(start: { latitude: number, longitude: number }, end: { latitude: number, longitude: number }) {
     if (!start || !end) return null;
-    
+
     // Create a simple line with slight curve for more realistic appearance
     const points = [];
     const steps = 20;
-    
+
     for (let i = 0; i <= steps; i++) {
       const ratio = i / steps;
-      
+
       // Linear interpolation between points
       const lat = start.latitude + (end.latitude - start.latitude) * ratio;
       const lng = start.longitude + (end.longitude - start.longitude) * ratio;
-      
+
       // Add slight curve if not start or end point
       const curveAmount = 0.0003; // Adjust for curve intensity
       const curve = i > 0 && i < steps ? Math.sin(ratio * Math.PI) * curveAmount : 0;
-      
+
       points.push({
         latitude: lat + curve,
         longitude: lng - curve,
       });
     }
-    
+
     return {
       points,
       // Using the same distance we calculated above
@@ -136,7 +136,7 @@ export default function CheckoutScreen() {
     const { status } = await requestForegroundPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Доступ к местоположению", 
+        "Доступ к местоположению",
         "Для определения маршрута требуется доступ к вашему местоположению",
         [{ text: "OK" }]
       );
@@ -144,18 +144,21 @@ export default function CheckoutScreen() {
     }
 
     try {
-      const currentLocation = await getCurrentPositionAsync();
+      const currentLocation = await getCurrentPositionAsync({
+        accuracy: Platform.OS === 'ios' ? 6 : 4, // Balanced accuracy
+      });
+
       setLocation(currentLocation);
 
       // Generate route between user and partner locations
       if (partner && currentLocation) {
         const routeData = generateRoute(
-          currentLocation.coords, 
+          currentLocation.coords,
           partner.coords
         );
         setRoute(routeData);
       }
-      
+
       // Fit map to show both markers and the route
       mapRef.current?.fitToCoordinates([currentLocation.coords, partner.coords], {
         edgePadding: { top: 70, right: 70, bottom: 70, left: 70 },
@@ -173,45 +176,45 @@ export default function CheckoutScreen() {
 
   function updateQuantity(id: string, newQuantity: number) {
     if (newQuantity < 1) return;
-    
-    setItems(items.map(item => 
-      item.id === id ? {...item, quantity: newQuantity} : item
+
+    setItems(items.map(item =>
+      item.id === id ? { ...item, quantity: newQuantity } : item
     ));
   }
 
   async function confirmOrder() {
     if (!partner || !user || isProcessing) return;
-    
+
     // Check if quantity is valid
     if (boxQuantity <= 0) {
       Alert.alert("Ошибка", "Пожалуйста, выберите количество боксов.");
       return;
     }
-    
+
     // Check if there are enough boxes available
-    if (boxQuantity > partner.boxesInfo.total_available) {
+    if (boxQuantity > partner.totalBoxCount) {
       Alert.alert(
-        "Недостаточно боксов", 
-        `Доступно только ${partner.boxesInfo.total_available} шт. Пожалуйста, уменьшите количество.`
+        "Недостаточно боксов",
+        `Доступно только ${partner.totalBoxCount} шт. Пожалуйста, уменьшите количество.`
       );
       return;
     }
-    
+
     try {
       setIsProcessing(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Order success
       setOrderSuccess(true);
-      
+
       // Show success alert
       Alert.alert(
-        "Заказ оформлен", 
+        "Заказ оформлен",
         "Ваш заказ успешно оформлен. Вы можете отслеживать статус в разделе 'История заказов'.",
-        [{ 
-          text: "OK", 
+        [{
+          text: "OK",
           onPress: () => {
             // Navigate back to main screen
             router.replace("/(tabs)/partners");
@@ -226,8 +229,8 @@ export default function CheckoutScreen() {
   }
 
   const PaymentMethodItem = ({ method, title, icon, selected }: { method: PaymentMethod, title: string, icon: string, selected: boolean }) => (
-    <TouchableOpacity 
-      style={[styles.paymentMethod, selected && styles.paymentMethodSelected]} 
+    <TouchableOpacity
+      style={[styles.paymentMethod, selected && styles.paymentMethodSelected]}
       onPress={() => setSelectedPayment(method)}
     >
       <MaterialCommunityIcons name={icon as any} size={24} color={selected ? "#2ecc71" : "#555"} />
@@ -265,7 +268,7 @@ export default function CheckoutScreen() {
                       {formatNumber(item.price, { suffix: "₸" })}
                     </Text>
                   </View>
-                    <Text style={styles.quantityText}>{item.quantity}</Text>
+                  <Text style={styles.quantityText}>{item.quantity}</Text>
                 </View>
               ))}
               <Text style={styles.partnerName}>
@@ -276,7 +279,7 @@ export default function CheckoutScreen() {
 
           <Island>
             <Text style={styles.blockTitle}>Детали заказа</Text>
-            
+
             {/* Map section with route */}
             <View style={[styles.mapWrapper]}>
               <MapView
@@ -301,22 +304,22 @@ export default function CheckoutScreen() {
                 liteMode={true}
               >
                 {/* OpenStreetMap Tile Layer */}
-                <UrlTile 
+                <UrlTile
                   urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   maximumZ={19}
                   flipY={false}
                 />
-                
+
                 {userLocation?.coords && (
                   <CurrentLocationMarker coordinate={userLocation.coords} />
                 )}
-                
-                <Marker 
+
+                <Marker
                   coordinate={partner.coords}
                   title={partner.name}
                   description="Место получения заказа"
                 />
-                
+
                 {/* Route polyline */}
                 {route && route.points && (
                   <Polyline
@@ -328,7 +331,7 @@ export default function CheckoutScreen() {
                 )}
               </MapView>
             </View>
-            
+
             {/* Route info section */}
             {distanceInfo && (
               <View style={styles.routeInfoContainer}>
@@ -339,14 +342,14 @@ export default function CheckoutScreen() {
                       {distanceInfo.walkingMinutes} мин
                     </Text>
                   </View>
-                  
+
                   <View style={styles.distanceInfoItem}>
                     <FontAwesome5 name="car" size={18} color="#555" />
                     <Text style={styles.distanceInfoText}>
                       {distanceInfo.drivingMinutes} мин
                     </Text>
                   </View>
-                  
+
                   <View style={styles.distanceInfoItem}>
                     <FontAwesome5 name="route" size={18} color="#555" />
                     <Text style={styles.distanceInfoText}>
@@ -356,12 +359,12 @@ export default function CheckoutScreen() {
                 </View>
               </View>
             )}
-            
+
             <View style={styles.locationRow}>
               <Ionicons name="location-outline" size={20} color="#333" />
               <Text style={styles.addressText}>{partner.address}</Text>
             </View>
-            
+
             <Informer
               variant="warning"
               caption={"Иначе заказ будет отменен"}
@@ -372,29 +375,29 @@ export default function CheckoutScreen() {
           <Island>
             <Text style={styles.blockTitle}>Способ оплаты</Text>
             <View style={styles.paymentMethods}>
-              <PaymentMethodItem 
-                method="card" 
-                title="Банковская карта" 
-                icon="credit-card-outline" 
-                selected={selectedPayment === "card"} 
+              <PaymentMethodItem
+                method="card"
+                title="Банковская карта"
+                icon="credit-card-outline"
+                selected={selectedPayment === "card"}
               />
-              <PaymentMethodItem 
-                method="cash" 
-                title="Наличные при получении" 
-                icon="cash" 
-                selected={selectedPayment === "cash"} 
+              <PaymentMethodItem
+                method="cash"
+                title="Наличные при получении"
+                icon="cash"
+                selected={selectedPayment === "cash"}
               />
-              <PaymentMethodItem 
-                method="applePay" 
-                title="Apple Pay" 
-                icon="apple" 
-                selected={selectedPayment === "applePay"} 
+              <PaymentMethodItem
+                method="applePay"
+                title="Apple Pay"
+                icon="apple"
+                selected={selectedPayment === "applePay"}
               />
-              <PaymentMethodItem 
-                method="googlePay" 
-                title="Google Pay" 
-                icon="google" 
-                selected={selectedPayment === "googlePay"} 
+              <PaymentMethodItem
+                method="googlePay"
+                title="Google Pay"
+                icon="google"
+                selected={selectedPayment === "googlePay"}
               />
             </View>
           </Island>
@@ -420,18 +423,15 @@ export default function CheckoutScreen() {
               </View>
             </View>
 
-            <Button 
-              onPress={confirmOrder} 
+            <Button
+              title={`Оформить заказ на ${formatNumber(total, { suffix: "₸" })}`}
+              variant="primary"
+              size="large"
+              onPress={confirmOrder}
               disabled={isProcessing || items.length === 0}
-            >
-              {isProcessing ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                  Оформить заказ на {formatNumber(total, { suffix: "₸" })}
-                </Text>
-              )}
-            </Button>
+              loading={isProcessing}
+              fullWidth
+            />
           </Island>
         </View>
       </ScrollView>

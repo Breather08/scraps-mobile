@@ -23,9 +23,9 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { formatNumber } from '@/utils/number';
-import Button from '@/components/button';
 import { useAuth } from '@/providers/auth-provider';
 import { supabase } from '@/services/supabase';
+import Button from '@/components/ui/button';
 
 import { usePartner } from '../../providers/partners-provider';
 import OrderAmountInput from '../../components/order-amount-input';
@@ -46,48 +46,111 @@ export default function PartnerScreen() {
   const router = useRouter();
   const [selectedBoxOption, setSelectedBoxOption] = useState<string>('standard');
   const [loading, setLoading] = useState(false);
-  const [remainingBoxes, setRemainingBoxes] = useState(partner ? partner.boxesInfo.total_available : 0);
+  const [remainingBoxes, setRemainingBoxes] = useState(partner ? partner.totalBoxCount : 0);
   const [showReviews, setShowReviews] = useState(false);
   const { width } = useWindowDimensions();
   
-  // Set up real-time subscription for this specific partner's boxes info
+  // Set up real-time subscription for this specific partner's boxes
   useEffect(() => {
     if (!partner?.id) return;
     
     // Initialize the remaining boxes count from the partner object
-    setRemainingBoxes(partner.boxesInfo.total_available);
+    setRemainingBoxes(partner.totalBoxCount);
     
-    // Subscribe to changes on this specific partner's boxes info
+    // Subscribe to changes on this specific partner's business boxes
     const subscription = supabase
       .channel(`partner_boxes_${partner.id}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'business_profiles',
-        filter: `id=eq.${partner.id}`
-      }, (payload) => {
+        table: 'business_boxes',
+        filter: `business_id=eq.${partner.id}`
+      }, async (payload) => {
         try {
-          // Parse the updated boxes_info from the payload
-          const updatedBoxesInfo = payload.new.boxes_info ? 
-            JSON.parse(payload.new.boxes_info as string) : 
-            { total_available: 0 };
+          // Fetch all updated boxes for this business
+          const { data: updatedBoxes, error } = await supabase
+            .from('business_boxes')
+            .select(`
+              id, count, price_min, price_max, last_updated,
+              box_type:box_type_id(id, name, description)
+            `)
+            .eq('business_id', partner.id);
             
+          if (error) {
+            console.warn("Failed to fetch updated boxes:", error);
+            return;
+          }
+          
+          if (!updatedBoxes || updatedBoxes.length === 0) {
+            return;
+          }
+
+          // Calculate total box count from all boxes
+          const total = updatedBoxes.reduce((sum, box) => sum + (box.count || 0), 0);
+
           // Update the box count in state
-          setRemainingBoxes(updatedBoxesInfo.total_available);
+          setRemainingBoxes(total);
           
           // Also update the partner object to keep it in sync
           if (partner) {
+            // We need to map the updated boxes to our BusinessBox type
+            const mappedBoxes = await Promise.all(updatedBoxes.map(async (boxData) => {
+              // Extract first item from box_type array - Supabase returns foreign key relations as arrays
+              const boxTypeData = Array.isArray(boxData.box_type) && boxData.box_type.length > 0
+                ? boxData.box_type[0]
+                : (boxData.box_type as any) || { id: '', name: '', description: null };
+                
+              // Fetch typical items for this box
+              const { data: typicalItems } = await supabase
+                .from('box_typical_items')
+                .select('item_name')
+                .eq('business_box_id', boxData.id);
+              
+              // Fetch dietary options for this box
+              const { data: dietaryOptionsData } = await supabase
+                .from('box_dietary_options')
+                .select('dietary_options(name)')
+                .eq('business_box_id', boxData.id);
+                
+              // Map dietary options data, handling cases where dietary_options might be an array or object
+              const dietaryOptions = dietaryOptionsData?.map(option => {
+                const dietaryOption = Array.isArray(option.dietary_options) && option.dietary_options.length > 0
+                  ? option.dietary_options[0]
+                  : (option.dietary_options as any);
+                  
+                return dietaryOption?.name || '';
+              }) || [];
+                
+              return {
+                id: boxData.id,
+                boxType: {
+                  id: boxTypeData.id || '',
+                  name: boxTypeData.name || '',
+                  description: boxTypeData.description
+                },
+                count: boxData.count,
+                priceRange: {
+                  min: boxData.price_min,
+                  max: boxData.price_max
+                },
+                typicalItems: typicalItems?.map(item => item.item_name) || [],
+                dietaryOptions,
+                lastUpdated: boxData.last_updated || undefined
+              };
+            }));
+            
             setPartner({
               ...partner,
-              boxesInfo: updatedBoxesInfo
+              boxes: mappedBoxes,
+              totalBoxCount: total
             });
           }
         } catch (e) {
-          console.warn("Failed to parse updated boxes info:", e);
+          console.warn("Failed to handle box update:", e);
         }
       })
       .subscribe();
-
+    
     // Clean up subscription when component unmounts or partner changes
     return () => {
       subscription.unsubscribe();
@@ -238,23 +301,35 @@ export default function PartnerScreen() {
           </Animated.View>
 
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity
-              style={styles.iconButton}
+            <Button
+              variant="translucent"
+              size="small"
+              iconOnly
+              leftIcon="arrow-back"
+              iconType="ionicons"
+              style={styles.headerIconButton}
               onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={22} color="#fff" />
-            </TouchableOpacity>
+            />
             <View style={styles.rightButtonsContainer}>
-              <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
-                <Ionicons name="share-outline" size={22} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={toggleFavorite}>
-                <Ionicons 
-                  name={isFavorite ? "heart" : "heart-outline"} 
-                  size={22} 
-                  color={isFavorite ? "#ff4757" : "#fff"} 
-                />
-              </TouchableOpacity>
+              <Button
+                variant="translucent"
+                size="small"
+                iconOnly
+                leftIcon="share-outline"
+                iconType="ionicons"
+                style={styles.headerIconButton}
+                onPress={handleShare}
+              />
+              <Button
+                variant="translucent"
+                size="small"
+                iconOnly
+                leftIcon={isFavorite ? "heart" : "heart-outline"}
+                iconType="ionicons"
+                iconColor={isFavorite ? "#ff4757" : "#fff"}
+                style={styles.headerIconButton}
+                onPress={toggleFavorite}
+              />
             </View>
           </View>
           
@@ -505,11 +580,18 @@ export default function PartnerScreen() {
         
         {/* Fixed order button */}
         <View style={styles.orderButtonContainer}>
-          <Button onPress={handlePresentModalPress}>
-            <Text style={styles.ctaText}>Забрать {getSelectedBoxOption().name} бокс</Text>
-            <Text style={styles.ctaCaption}>
-              {formatNumber(getSelectedBoxOption().price, { suffix: "₸" })}
-            </Text>
+          <Button 
+            variant="primary"
+            size="large"
+            onPress={handlePresentModalPress}
+            style={{ width: '100%' }}
+          >
+            <View>
+              <Text style={styles.ctaText}>Забрать {getSelectedBoxOption().name} бокс</Text>
+              <Text style={styles.ctaCaption}>
+                {formatNumber(getSelectedBoxOption().price, { suffix: "₸" })}
+              </Text>
+            </View>
           </Button>
         </View>
         

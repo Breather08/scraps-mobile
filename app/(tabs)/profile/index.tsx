@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/providers/auth-provider";
 import { router } from "expo-router";
 import Island from "@/components/island";
+import Button from "@/components/ui/button";
 
 function ProfileScreen() {
   const { user, logout, loading } = useAuth();
@@ -113,14 +114,6 @@ function ProfileScreen() {
 
             <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
               <View style={styles.menuItemLeft}>
-                <MaterialCommunityIcons name="credit-card-outline" size={24} color="#555" />
-                <Text style={styles.menuItemText}>Способы оплаты</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-              <View style={styles.menuItemLeft}>
                 <MaterialCommunityIcons name="history" size={24} color="#555" />
                 <Text style={styles.menuItemText}>История заказов</Text>
               </View>
@@ -142,10 +135,14 @@ function ProfileScreen() {
               </View>
               <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={20} color="#fff" />
-          <Text style={styles.logoutButtonText}>Выйти из аккаунта</Text>
-        </TouchableOpacity>
+            
+            <Button 
+              title="Выйти из аккаунта"
+              onPress={handleLogout}
+              variant="danger"
+              leftIcon="logout"
+              style={styles.logoutButton}
+            />
           </Island>
         </View>
       </ScrollView>
@@ -272,20 +269,8 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   logoutButton: {
-    flexDirection: "row",
-    backgroundColor: "#ff4757",
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-    alignItems: "center",
     marginTop: 20,
     marginHorizontal: 20,
-  },
-  logoutButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 10,
+    borderRadius: 10,
   },
 });

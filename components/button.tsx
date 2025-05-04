@@ -1,47 +1,40 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
+import Button from "./ui/button";
 
 export interface ButtonProps {
   children: React.ReactNode | React.ReactNode[];
   onPress: () => void;
   disabled?: boolean;
-  style?: any;
+  style?: ViewStyle;
 }
 
-export default function Button({ children, onPress, disabled = false, style }: ButtonProps) {
+// This is a backward-compatible wrapper for the enhanced Button component
+export default function LegacyButton({ children, onPress, disabled = false, style }: ButtonProps) {
+  const composedStyle = style ? [styles.button, style] : styles.button;
+  
   return (
-    <Pressable 
-      style={({ pressed }) => [
-        styles.button,
-        disabled && styles.buttonDisabled,
-        pressed && !disabled && styles.buttonPressed,
-        style
-      ]} 
+    <Button
       onPress={onPress}
       disabled={disabled}
+      variant="primary"
+      style={composedStyle}
     >
       <View style={styles.innerContainer}>
         {children}
       </View>
-    </Pressable>
+    </Button>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#2ecc71",
-    padding: 12,
     borderRadius: 30,
     marginTop: 20,
-    alignItems: "center",
-    color: "#fff",
   },
   buttonDisabled: {
     backgroundColor: "#a8e6bc",
     opacity: 0.7,
-  },
-  buttonPressed: {
-    backgroundColor: "#27ae60",
   },
   innerContainer: {
     alignItems: "center",

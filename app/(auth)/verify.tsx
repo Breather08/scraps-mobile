@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  Pressable,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -13,6 +11,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/providers/auth-provider';
+import Button from '@/components/ui/button';
 
 export default function VerifyScreen() {
   const { phone } = useLocalSearchParams<{ phone: string }>();
@@ -134,23 +133,27 @@ export default function VerifyScreen() {
           ))}
         </View>
 
-        <Pressable 
-          style={[styles.button, code.join('').length !== 6 && styles.buttonDisabled]}
+        <Button 
+          title="Проверить"
+          variant="primary"
+          size="large"
           onPress={handleSubmit}
-          disabled={code.join('').length !== 6 || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Проверить</Text>
-          )}
-        </Pressable>
+          disabled={code.join('').length !== 6}
+          loading={isLoading}
+          style={styles.button}
+          fullWidth
+        />
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Не получили код? </Text>
-          <Pressable onPress={resendCode} disabled={isLoading}>
-            <Text style={styles.resendAction}>Отправить повторно</Text>
-          </Pressable>
+          <Button
+            title="Отправить повторно"
+            variant="text"
+            size="small"
+            onPress={resendCode}
+            disabled={isLoading}
+            textStyle={styles.resendAction}
+          />
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -194,19 +197,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   button: {
-    backgroundColor: '#2ecc71',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
     marginBottom: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: '#a5d6ba',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    borderRadius: 12,
   },
   resendContainer: {
     flexDirection: 'row',

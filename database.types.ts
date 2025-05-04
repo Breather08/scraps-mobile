@@ -9,11 +9,191 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      box_dietary_options: {
+        Row: {
+          business_box_id: string
+          dietary_option_id: string
+        }
+        Insert: {
+          business_box_id: string
+          dietary_option_id: string
+        }
+        Update: {
+          business_box_id?: string
+          dietary_option_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_dietary_options_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "business_boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "box_dietary_options_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes"
+            referencedColumns: ["box_id"]
+          },
+          {
+            foreignKeyName: "box_dietary_options_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["box_id"]
+          },
+          {
+            foreignKeyName: "box_dietary_options_dietary_option_id_fkey"
+            columns: ["dietary_option_id"]
+            isOneToOne: false
+            referencedRelation: "dietary_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      box_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      box_typical_items: {
+        Row: {
+          business_box_id: string
+          id: string
+          item_name: string
+        }
+        Insert: {
+          business_box_id: string
+          id?: string
+          item_name: string
+        }
+        Update: {
+          business_box_id?: string
+          id?: string
+          item_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_typical_items_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "business_boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "box_typical_items_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes"
+            referencedColumns: ["box_id"]
+          },
+          {
+            foreignKeyName: "box_typical_items_business_box_id_fkey"
+            columns: ["business_box_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["box_id"]
+          },
+        ]
+      }
+      business_boxes: {
+        Row: {
+          box_type_id: string
+          business_id: string
+          count: number
+          id: string
+          last_updated: string | null
+          price_max: number
+          price_min: number
+        }
+        Insert: {
+          box_type_id: string
+          business_id: string
+          count?: number
+          id?: string
+          last_updated?: string | null
+          price_max: number
+          price_min: number
+        }
+        Update: {
+          box_type_id?: string
+          business_id?: string
+          count?: number
+          id?: string
+          last_updated?: string | null
+          price_max?: number
+          price_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_boxes_box_type_id_fkey"
+            columns: ["box_type_id"]
+            isOneToOne: false
+            referencedRelation: "box_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_boxes_box_type_id_fkey"
+            columns: ["box_type_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes"
+            referencedColumns: ["box_type_id"]
+          },
+          {
+            foreignKeyName: "business_boxes_box_type_id_fkey"
+            columns: ["box_type_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["box_type_id"]
+          },
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
+          },
+        ]
+      }
       business_profiles: {
         Row: {
           address: string
           average_rating: number | null
-          boxes_info: Json | null
           business_name: string
           business_type: string | null
           city: string
@@ -21,15 +201,15 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
-          location: unknown
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           operating_hours: Json
           updated_at: string | null
         }
         Insert: {
           address: string
           average_rating?: number | null
-          boxes_info?: Json | null
           business_name: string
           business_type?: string | null
           city?: string
@@ -37,15 +217,15 @@ export type Database = {
           description?: string | null
           id: string
           is_active?: boolean | null
-          location: unknown
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           operating_hours: Json
           updated_at?: string | null
         }
         Update: {
           address?: string
           average_rating?: number | null
-          boxes_info?: Json | null
           business_name?: string
           business_type?: string | null
           city?: string
@@ -53,8 +233,9 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
-          location?: unknown
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           operating_hours?: Json
           updated_at?: string | null
         }
@@ -103,6 +284,24 @@ export type Database = {
           },
         ]
       }
+      dietary_options: {
+        Row: {
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           business_id: string
@@ -126,6 +325,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
           },
           {
             foreignKeyName: "favorites_customer_id_fkey"
@@ -193,6 +406,20 @@ export type Database = {
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "food_packages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "food_packages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
+          },
         ]
       }
       orders: {
@@ -245,6 +472,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
           },
           {
             foreignKeyName: "orders_customer_id_fkey"
@@ -348,6 +589,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
           },
           {
             foreignKeyName: "reviews_customer_id_fkey"
@@ -459,6 +714,85 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      vw_business_box_summary: {
+        Row: {
+          business_id: string | null
+          business_name: string | null
+          last_updated: string | null
+          total_boxes_available: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_profiles_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_business_boxes: {
+        Row: {
+          box_id: string | null
+          box_type_id: string | null
+          box_type_name: string | null
+          business_id: string | null
+          business_name: string | null
+          count: number | null
+          dietary_options: string[] | null
+          last_updated: string | null
+          price_max: number | null
+          price_min: number | null
+          typical_items: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_box_summary"
+            referencedColumns: ["business_id"]
+          },
+          {
+            foreignKeyName: "business_boxes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "vw_business_boxes_detail"
+            referencedColumns: ["business_id"]
+          },
+        ]
+      }
+      vw_business_boxes_detail: {
+        Row: {
+          box_id: string | null
+          box_type_id: string | null
+          box_type_name: string | null
+          business_id: string | null
+          business_name: string | null
+          count: number | null
+          dietary_options: string[] | null
+          last_updated: string | null
+          price_max: number | null
+          price_min: number | null
+          typical_items: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_profiles_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -672,6 +1006,14 @@ export type Database = {
       delete_box_type: {
         Args: { business_id_param: string; type_id_param: string }
         Returns: Json
+      }
+      delete_business_box: {
+        Args: { box_id_param: string }
+        Returns: boolean
+      }
+      determine_box_type: {
+        Args: { food_type: string; description: string }
+        Returns: string
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -928,9 +1270,63 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_all_box_types: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+        }[]
+      }
+      get_all_dietary_options: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+        }[]
+      }
+      get_business_box_count: {
+        Args: { business_id_param: string }
+        Returns: number
+      }
+      get_business_box_summary: {
+        Args: { business_id_param: string }
+        Returns: {
+          business_id: string
+          business_name: string
+          total_boxes_available: number
+          last_updated: string
+        }[]
+      }
       get_business_boxes: {
         Args: { business_id_param: string }
-        Returns: Json
+        Returns: {
+          id: string
+          box_type_id: string
+          box_type_name: string
+          count: number
+          price_min: number
+          price_max: number
+          dietary_options: string[]
+          typical_items: string[]
+          last_updated: string
+        }[]
+      }
+      get_businesses_with_boxes_nearby: {
+        Args: {
+          lat: number
+          lng: number
+          radius_km?: number
+          min_boxes?: number
+        }
+        Returns: {
+          business_id: string
+          business_name: string
+          distance_km: number
+          total_boxes_available: number
+          box_types: string[]
+        }[]
       }
       get_nearby_businesses: {
         Args: { lat: number; lng: number; radius_km?: number }
@@ -938,6 +1334,22 @@ export type Database = {
           id: string
           business_name: string
           distance_km: number
+        }[]
+      }
+      get_nearby_businesses_with_boxes: {
+        Args: {
+          lat: number
+          lng: number
+          radius_km?: number
+          min_boxes?: number
+        }
+        Returns: {
+          id: string
+          business_name: string
+          logo_url: string
+          distance_km: number
+          total_boxes: number
+          box_types: Json
         }[]
       }
       get_proj4_from_srid: {
@@ -2258,6 +2670,18 @@ export type Database = {
           table_name: string
           column_name: string
           new_srid_in: number
+        }
+        Returns: string
+      }
+      upsert_business_box: {
+        Args: {
+          business_id_param: string
+          box_type_id_param: string
+          count_param: number
+          price_min_param: number
+          price_max_param: number
+          dietary_options_param: string[]
+          typical_items_param: string[]
         }
         Returns: string
       }

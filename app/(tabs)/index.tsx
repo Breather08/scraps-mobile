@@ -242,8 +242,8 @@ export default function MapScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      {/* <StatusBar barStyle="dark-content" /> */}
       
       {/* Map View */}
       <MapView
@@ -267,6 +267,18 @@ export default function MapScreen() {
           flipY={false}
         />
         
+        {(() => {
+          const partner = partners.find(({ id }) => selectedMarkerId === id)
+
+          if (!partner) return
+
+          return <Marker 
+          coordinate={partner.coords}
+          title={partner.name}
+          description="Место получения заказа"
+        />
+        })()}
+
         {/* Partner Markers */}
         {markers.map((marker) => (
           <Marker
@@ -428,14 +440,14 @@ export default function MapScreen() {
               />
             )}
             onScrollEnd={(index) => handleCarouselItemChange(index)}
-            height={340}
+            height={260}
             width={screenWidth}
             style={{ width: screenWidth }}
             loop={false}
             mode="parallax"
             modeConfig={{
               parallaxScrollingScale: 0.9,
-              parallaxScrollingOffset: 70,
+              parallaxScrollingOffset: 50,
             }}
             snapEnabled
           />

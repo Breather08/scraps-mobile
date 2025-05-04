@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { fetchPartners } from "../api";
 import { Partner } from "../types";
 import PartnerCard from "../components/partner-card";
+import PartnerSkeleton from "../components/partner-skeleton";
 import {
   FlatList,
   RefreshControl,
@@ -13,18 +14,14 @@ import {
   ActivityIndicator,
   Image,
   Animated,
-  Easing,
-  Platform,
-  Dimensions,
   ScrollView,
 } from "react-native";
-import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@/providers/auth-provider";
 import { useRouter } from "expo-router";
-import { BlurView } from "expo-blur";
-import { supabase } from "@/services/supabase";
+import Button from "@/components/ui/button";
 
 export default function PartnersListScreen() {
   const { user } = useAuth();
@@ -36,8 +33,9 @@ export default function PartnersListScreen() {
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [activeFilter, setActiveFilter] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -84,6 +82,7 @@ export default function PartnersListScreen() {
     } finally {
       setIsRefreshing(false);
       setLoading(false);
+      setInitialLoad(false);
     }
   }
 
@@ -114,12 +113,15 @@ export default function PartnersListScreen() {
   function renderHeader() {
     return (
       <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>Sarqyt</Text>
+        </View>
         <View style={styles.searchContainer}>
           <MaterialCommunityIcons name="magnify" size={22} color="#888" style={styles.searchIcon} />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder="Найти партнеров..."
+            placeholder="Найти заведение..."
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -147,11 +149,10 @@ export default function PartnersListScreen() {
       <View style={styles.filterContainer}>
         <ScrollableFilterTabs 
           filters={[
-            { id: 'all', label: 'Все', icon: 'view-grid-outline' as any },
-            { id: 'nearby', label: 'Рядом', icon: 'map-marker' as any },
-            { id: 'rating', label: 'Топ', icon: 'star-outline' as any },
-            { id: 'price', label: 'Цена', icon: 'cash-multiple' as any },
-            { id: 'new', label: 'Новые', icon: 'new-box' as any }
+            { id: 'nearby', label: 'Рядом', icon: 'map-marker' },
+            { id: 'rating', label: 'Топ', icon: 'star-outline' },
+            { id: 'price', label: 'Цена', icon: 'cash-multiple' },
+            { id: 'new', label: 'Новые', icon: 'new-box' }
           ]}
           activeFilter={activeFilter}
           onSelectFilter={filterPartners}
@@ -160,36 +161,14 @@ export default function PartnersListScreen() {
     );
   }
 
-  function renderFeaturedPartners() {
-    if (!featuredPartners.length) return null;
-    
-    return (
-      <View style={styles.featuredSection}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
-            <MaterialCommunityIcons name="star" size={18} color="#2ecc71" style={{marginRight: 6}} />
-            <Text style={styles.sectionTitle}>Рекомендуемые</Text>
-          </View>
-          <TouchableOpacity style={styles.seeAllButtonContainer}>
-            <Text style={styles.seeAllButton}>Все</Text>
-            <MaterialCommunityIcons name="chevron-right" size={14} color="#2ecc71" />
-          </TouchableOpacity>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.featuredScrollContent}
-        >
-          {featuredPartners.map(partner => (
-            <FeaturedPartnerCard key={`featured-${partner.id}`} partner={partner} />
-          ))}
-        </ScrollView>
-      </View>
-    );
+  function renderSkeletonLoaders() {
+    return Array(6).fill(0).map((_, index) => (
+      <PartnerSkeleton key={`skeleton-${index}`} />
+    ));
   }
 
   function renderEmptyState() {
-    if (loading) {
+    if (loading && !initialLoad) {
       return (
         <View style={styles.emptyStateContainer}>
           <View style={styles.loadingIndicator}>
@@ -210,9 +189,14 @@ export default function PartnersListScreen() {
           <Text style={styles.emptyStateText}>
             Не удалось загрузить данные. Проверьте подключение к интернету.
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={makePartnersRequest}>
-            <Text style={styles.retryButtonText}>Повторить</Text>
-          </TouchableOpacity>
+          <Button 
+            title="Повторить"
+            onPress={makePartnersRequest}
+            variant="primary"
+            size="medium"
+            leftIcon="refresh"
+            style={styles.actionButton}
+          />
         </View>
       );
     }
@@ -227,16 +211,18 @@ export default function PartnersListScreen() {
           <Text style={styles.emptyStateText}>
             Попробуйте изменить параметры поиска или обновите список.
           </Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
+          <Button 
+            title="Сбросить фильтры" 
             onPress={() => {
               setSearchQuery('');
-              setActiveFilter('all');
+              setActiveFilter('');
               makePartnersRequest();
             }}
-          >
-            <Text style={styles.retryButtonText}>Сбросить фильтры</Text>
-          </TouchableOpacity>
+            variant="primary"
+            size="medium"
+            leftIcon="filter-remove-outline"
+            style={styles.actionButton}
+          />
         </View>
       );
     }
@@ -250,39 +236,47 @@ export default function PartnersListScreen() {
       {renderHeader()}
       {renderFilterTabs()}
       
-      <Animated.FlatList
-        contentContainerStyle={styles.container}
-        data={filteredPartners}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderFeaturedPartners}
-        ListEmptyComponent={renderEmptyState}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity 
-            activeOpacity={0.7}
-            onPress={() => router.push(`/partners/${item.id}`)}
-          >
-            <PartnerCard partner={item} key={index} />
-          </TouchableOpacity>
-        )}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={makePartnersRequest}
-            colors={["#2ecc71"]}
-            tintColor="#2ecc71"
-          />
-        }
-        onScroll={Animated.event(
-          [{nativeEvent: {contentOffset: {y: scrollY}}}],
-          {useNativeDriver: true}
-        )}
-        scrollEventThrottle={16}
-        initialNumToRender={8}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={4}
-        windowSize={10}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading && initialLoad ? (
+        <ScrollView 
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderSkeletonLoaders()}
+        </ScrollView>
+      ) : (
+        <Animated.FlatList
+          contentContainerStyle={styles.container}
+          data={filteredPartners}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={renderEmptyState}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              onPress={() => router.push(`/partners/${item.id}`)}
+            >
+              <PartnerCard partner={item} key={index} />
+            </TouchableOpacity>
+          )}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={makePartnersRequest}
+              colors={["#2ecc71"]}
+              tintColor="#2ecc71"
+            />
+          }
+          onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: scrollY}}}],
+            {useNativeDriver: true}
+          )}
+          scrollEventThrottle={16}
+          initialNumToRender={8}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={4}
+          windowSize={10}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -303,15 +297,9 @@ function ScrollableFilterTabs({ filters, activeFilter, onSelectFilter }: FilterT
       renderItem={({ item }) => (
         <TouchableOpacity 
           style={[styles.filterTab, activeFilter === item.id && styles.filterTabActive]}
-          onPress={() => onSelectFilter(item.id)}
+          onPress={() => activeFilter === item.id ? onSelectFilter('') : onSelectFilter(item.id)}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons 
-            name={item.icon as any} 
-            size={18} 
-            color={activeFilter === item.id ? '#fff' : '#555'} 
-            style={{marginRight: 5}}
-          />
           <Text 
             style={[styles.filterText, activeFilter === item.id && styles.filterTextActive]}
           >
@@ -321,30 +309,6 @@ function ScrollableFilterTabs({ filters, activeFilter, onSelectFilter }: FilterT
       )}
       contentContainerStyle={styles.filterTabsContainer}
     />
-  );
-}
-
-function FeaturedPartnerCard({ partner }: { partner: Partner }) {
-  return (
-    <TouchableOpacity style={styles.featuredCard}>
-      <Image 
-        source={{ uri: partner.backgroundUrl || 'https://via.placeholder.com/150' }} 
-        style={styles.featuredImage} 
-      />
-      <View style={styles.featuredOverlay}>
-        <View style={styles.featuredLogoContainer}>
-          <Image 
-            source={{ uri: partner.logoUrl || 'https://via.placeholder.com/50' }} 
-            style={styles.featuredLogo} 
-          />
-        </View>
-        <Text style={styles.featuredName}>{partner.name}</Text>
-        <View style={styles.featuredRating}>
-          <MaterialCommunityIcons name="star" size={14} color="#FFC107" />
-          <Text style={styles.featuredRatingText}>{partner.rating}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
   );
 }
 
@@ -358,9 +322,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingBottom: 10,
-    borderBottomWidth: 1,
     borderBottomColor: '#eee',
     zIndex: 10,
   },
@@ -408,8 +371,7 @@ const styles = StyleSheet.create({
   },
   container: { 
     padding: 12, 
-    gap: 10,
-    paddingTop: 0,
+    gap: 4,
   },
   headerOld: {
     backgroundColor: '#fff',
@@ -425,7 +387,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logoContainer: {
-    height: 40,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: "#2ecc71",
   },
   logo: {
     width: 120,
@@ -466,12 +434,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    height: 40,
     fontSize: 16,
     color: '#333',
   },
   filterContainer: {
-    paddingVertical: 8,
+    paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -659,5 +626,10 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  actionButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
   },
 });

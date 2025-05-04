@@ -1,13 +1,18 @@
 import { supabase } from "../../services/supabase";
 import type { Database } from "../../database.types";
-import type { Partner, BoxesInfo, BoxType, PriceRange } from "./types";
+import type { Partner, BusinessBox, BoxType, PriceRange } from "./types";
 
 type BusinessProfileRow = Database["public"]["Tables"]["business_profiles"]["Row"];
+type BusinessBoxRow = Database["public"]["Tables"]["business_boxes"]["Row"];
+type BoxTypeRow = Database["public"]["Tables"]["box_types"]["Row"];
 type FoodPackageRow = Database["public"]["Tables"]["food_packages"]["Row"];
 type OperatingHours = { open: string; close: string; day: number }[];
 
-function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: number): Partner {
-  const coordinates = (row.location as any)?.coordinates ?? [0, 0];
+async function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: number): Promise<Partner> {
+  // Use the direct longitude and latitude columns instead of extracting from location
+  const longitude = row.longitude || 0;
+  const latitude = row.latitude || 0;
+  
   let operatingHours: OperatingHours = [];
   
   try {
@@ -39,32 +44,77 @@ function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: num
     workEndAt = new Date(today.setHours(closeHours, closeMinutes, 0, 0));
   }
   
-  // Parse boxes info if available, or use default values
-  const defaultBoxesInfo: BoxesInfo = {
-    box_types: [{
-      name: "Standard Mystery Box",
-      count: 0,
-      type_id: "default",
-      description: "A surprise selection of surplus food items",
-      price_range: {
-        min: 700,
-        max: 2500
-      },
-      typical_items: ["Mixed food items"],
-      dietary_options: ["Mixed"]
-    }],
-    last_updated: new Date().toISOString(),
-    total_available: 0
-  };
+  // Fetch business boxes
+  const { data: businessBoxesData, error: businessBoxesError } = await supabase
+    .from('business_boxes')
+    .select(`
+      id, count, price_min, price_max, last_updated,
+      box_type:box_type_id(id, name, description)
+    `)
+    .eq('business_id', row.id);
   
-  let boxesInfo: BoxesInfo = defaultBoxesInfo;
-  try {
-      console.log('Raw boxes info', row.boxes_info);
-    if (row.boxes_info) {
-      boxesInfo = JSON.parse(row.boxes_info as string) as BoxesInfo;
+  if (businessBoxesError) {
+    console.warn('Failed to fetch business boxes:', businessBoxesError);
+  }
+  
+  // Process box data
+  let boxes: BusinessBox[] = [];
+  let totalBoxCount = 0;
+  
+  if (businessBoxesData && businessBoxesData.length > 0) {
+    // Map each business box to our BusinessBox type
+    for (const boxData of businessBoxesData) {
+      // Fetch typical items for this box
+      const { data: typicalItems } = await supabase
+        .from('box_typical_items')
+        .select('item_name')
+        .eq('business_box_id', boxData.id);
+      
+      // Fetch dietary options for this box
+      const { data: dietaryOptionsData } = await supabase
+        .from('box_dietary_options')
+        .select('dietary_options(name)')
+        .eq('business_box_id', boxData.id);
+      
+      // Extract first item from box_type array - Supabase returns foreign key relations as arrays
+      const boxTypeData = Array.isArray(boxData.box_type) && boxData.box_type.length > 0
+        ? boxData.box_type[0]
+        : (boxData.box_type as any) || { id: '', name: '', description: null };
+      
+      const boxType: BoxType = {
+        id: boxTypeData.id || '',
+        name: boxTypeData.name || '',
+        description: boxTypeData.description
+      };
+      
+      const priceRange: PriceRange = {
+        min: boxData.price_min,
+        max: boxData.price_max
+      };
+      
+      // Map dietary options data, handling cases where dietary_options might be an array or object
+      const dietaryOptions = dietaryOptionsData?.map(option => {
+        const dietaryOption = Array.isArray(option.dietary_options) && option.dietary_options.length > 0
+          ? option.dietary_options[0]
+          : (option.dietary_options as any);
+          
+        return dietaryOption?.name || '';
+      }) || [];
+      
+      // Add box to the list
+      boxes.push({
+        id: boxData.id,
+        boxType,
+        count: boxData.count,
+        priceRange,
+        typicalItems: typicalItems?.map(item => item.item_name) || [],
+        dietaryOptions,
+        lastUpdated: boxData.last_updated || undefined
+      });
+      
+      // Sum up the total count
+      totalBoxCount += boxData.count;
     }
-  } catch (e) {
-    console.warn("Failed to parse boxes info:", e);
   }
   
   return {
@@ -78,11 +128,12 @@ function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: num
     workStartAt,
     workEndAt,
     coords: {
-      longitude: coordinates[0] ?? 0,
-      latitude: coordinates[1] ?? 0,
+      longitude,
+      latitude,
     },
     distance: 0, // Will be calculated client-side based on user location
-    boxesInfo,
+    boxes,
+    totalBoxCount
   };
 }
 
@@ -95,9 +146,6 @@ export const fetchPartners = async (): Promise<Partner[]> => {
     .from("business_profiles")
     .select("*")
     .eq("is_active", true);
-
-  console.log('BUSINESS_PROFILES', businessProfiles);
-
 
   if (profilesError) {
     throw profilesError;
@@ -130,40 +178,101 @@ export const fetchPartners = async (): Promise<Partner[]> => {
   // });
 
   // Map the business profiles to partner objects with prices and add distance calculation
-  return businessProfiles.map(profile => {
-    const partner = mapBusinessProfileToPartner(profile, priceMap.get(profile.id));
-    
-    // This is where you would calculate distance if user location is available
-    // For now, we'll leave it at 0 and let the client handle it
-    
-    return partner;
-  });
+  const partners = await Promise.all(
+    businessProfiles.map(async (profile) => {
+      // Get the price for this business, or undefined if not found
+      const price = priceMap.get(profile.id);
+      return await mapBusinessProfileToPartner(profile, price);
+    })
+  );
+
+  return partners;
 };
 
 /**
- * Fetch a single partner by ID
+ * Fetch partners by category
  */
-export const fetchPartnerById = async (partnerId: string): Promise<Partner | null> => {
+export const fetchPartnersByCategory = async (
+  categoryId: string
+): Promise<Partner[]> => {
+  // TODO: Implement filtering by category
+  // For now, just return all partners
+  return fetchPartners();
+};
+
+/**
+ * Fetch featured partners (top-rated partners)
+ */
+export const fetchFeaturedPartners = async (): Promise<Partner[]> => {
+  const { data, error } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("is_active", true)
+    .order("average_rating", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Map business profiles to partner objects
+  const partners = await Promise.all(
+    data.map(async (profile) => await mapBusinessProfileToPartner(profile))
+  );
+
+  return partners;
+};
+
+/**
+ * Search partners by name
+ */
+export const searchPartners = async (query: string): Promise<Partner[]> => {
+  const { data, error } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("is_active", true)
+    .ilike("business_name", `%${query}%`);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Map business profiles to partner objects
+  const partners = await Promise.all(
+    data.map(async (profile) => await mapBusinessProfileToPartner(profile))
+  );
+
+  return partners;
+};
+
+/**
+ * Fetch a partner by ID
+ */
+export const fetchPartnerById = async (partnerId: string): Promise<Partner> => {
   const { data, error } = await supabase
     .from("business_profiles")
     .select("*")
     .eq("id", partnerId)
-    .eq("is_active", true)
     .single();
-  
+
   if (error) {
-    if (error.code === "PGRST116") { // Code for no rows returned
-      return null;
-    }
     throw error;
   }
-  
+
   if (!data) {
-    return null;
+    throw new Error(`Partner with ID ${partnerId} not found`);
   }
-  
-  // Get the lowest package price for this business
-  const { data: packageData, error: packageError } = await supabase
+
+  // Get the minimum price from food_packages
+  const { data: packageData, error: priceError } = await supabase
     .from("food_packages")
     .select("price")
     .eq("business_id", partnerId)
@@ -172,88 +281,5 @@ export const fetchPartnerById = async (partnerId: string): Promise<Partner | nul
 
   const price = packageData && packageData.length > 0 ? packageData[0].price : 0;
   
-  return mapBusinessProfileToPartner(data, price);
-};
-
-/**
- * Fetch featured partners (highest rated)
- */
-export const fetchFeaturedPartners = async (limit: number = 5): Promise<Partner[]> => {
-  const { data: businessProfiles, error } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .eq("is_active", true)
-    .order("average_rating", { ascending: false })
-    .limit(limit);
-    
-  if (error) {
-    throw error;
-  }
-  
-  if (!businessProfiles || businessProfiles.length === 0) {
-    return [];
-  }
-  
-  // Get prices for these businesses
-  const businessIds = businessProfiles.map(profile => profile.id);
-  const { data: packagePrices, error: pricesError } = await supabase
-    .from("food_packages")
-    .select("business_id, price")
-    .in("business_id", businessIds)
-    .order("price", { ascending: true });
-  
-  // Create a map of business_id to lowest price
-  const priceMap = new Map<string, number>();
-  packagePrices?.forEach(pkg => {
-    if (!priceMap.has(pkg.business_id) || pkg.price < priceMap.get(pkg.business_id)!) {
-      priceMap.set(pkg.business_id, pkg.price);
-    }
-  });
-  
-  return businessProfiles.map(profile => 
-    mapBusinessProfileToPartner(profile, priceMap.get(profile.id))
-  );
-};
-
-/**
- * Search for partners by name
- */
-export const searchPartners = async (query: string): Promise<Partner[]> => {
-  if (!query.trim()) {
-    return fetchPartners(); // Return all partners if no query
-  }
-  
-  const { data: businessProfiles, error } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .eq("is_active", true)
-    .ilike("business_name", `%${query.trim()}%`); // Case-insensitive search
-    
-  if (error) {
-    throw error;
-  }
-  
-  if (!businessProfiles || businessProfiles.length === 0) {
-    return [];
-  }
-  
-  // Get prices for these businesses
-  const businessIds = businessProfiles.map(profile => profile.id);
-  const { data: packagePrices, error: pricesError } = await supabase
-    .from("food_packages")
-    .select("business_id, price")
-    .in("business_id", businessIds)
-    .order("price", { ascending: true });
-  
-  // Create a map of business_id to lowest price
-  const priceMap = new Map<string, number>();
-  packagePrices?.forEach(pkg => {
-    if (!priceMap.has(pkg.business_id) || pkg.price < priceMap.get(pkg.business_id)!) {
-      priceMap.set(pkg.business_id, pkg.price);
-    }
-  });
-  
-  return businessProfiles.map(profile => 
-    mapBusinessProfileToPartner(profile, priceMap.get(profile.id))
-  );
+  return await mapBusinessProfileToPartner(data, price);
 };

@@ -74,6 +74,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  headerIconButton: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
   
   // Logo
   logoContainer: {

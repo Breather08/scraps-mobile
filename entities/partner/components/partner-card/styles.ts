@@ -1,10 +1,13 @@
 import { StyleSheet, Platform } from "react-native";
 
+// Brand color constant
+const BRAND_COLOR = "#2ecc71";
+
 const styles = StyleSheet.create({
   card: {
     width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: "hidden",
     marginBottom: 12,
     // Better shadow implementation for both platforms
@@ -16,46 +19,24 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
     }),
   },
   imageContainer: {
     position: "relative",
-    height: 140,
+    height: 160,
   },
   image: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
-  logo: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    width: 80,
-    height: 32,
-    resizeMode: "contain",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 8,
-    padding: 5,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
   favoriteIcon: {
     position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     padding: 8,
     borderRadius: 50,
     ...Platform.select({
@@ -71,189 +52,80 @@ const styles = StyleSheet.create({
     }),
   },
   details: {
-    padding: 16,
+    padding: 14,
   },
-  // Added nameRow for better structure
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  // Added ratingContainer for better style of ratings
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 193, 7, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  // Added divider for visual separation
-  divider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 8,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
+  titleSection: {
+    position: 'absolute',
+    bottom: 0,
+    paddingHorizontal: 12,
+    width: '100%',
+    paddingBottom: 12,
+    backgroundColor: 'li'
   },
   name: {
     fontSize: 18,
     fontWeight: "bold",
-    marginRight: 8,
-    color: "#333",
-    flex: 1,
+    color: "#fff",
+    marginBottom: 3,
   },
-  rating: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-    marginLeft: 4,
-  },
-  boldText: {
-    fontWeight: "600",
-    marginLeft: 8,
-    color: "#333",
-  },
-  time: {
-    marginLeft: 6,
-    color: "#555",
-    fontSize: 14,
-  },
-  // Added status indicator styles
-  statusIndicator: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    marginLeft: 8,
-  },
-  statusOpen: {
-    backgroundColor: "rgba(46, 204, 113, 0.15)",
-  },
-  statusClosed: {
-    backgroundColor: "rgba(231, 76, 60, 0.15)",
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#333",
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   distance: {
-    marginLeft: 8,
-    color: "#555",
     fontSize: 14,
+    color: "#fff",
   },
-  priceSection: {
+  dot: {
+    marginHorizontal: 5,
+    fontSize: 14,
+    color: "#fff",
+  },
+  categories: {
+    fontSize: 14,
+    color: "#fff",
+  },
+  infoRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 12,
+    marginBottom: 12,
   },
-  cartButton: {
+  collectionContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2ecc71",
-    borderRadius: 24,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
-  cartText: {
-    color: "white",
-    marginLeft: 6,
-    fontWeight: "600",
+  dotIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: BRAND_COLOR,
+    marginRight: 8,
   },
-  priceTag: {
+  collectionLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "#2ecc71",
-    borderRadius: 24,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
-  price: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  // Mystery boxes count badge
-  boxesCountBadge: {
-    position: "absolute",
-    bottom: 12,
-    right: 12,
-    backgroundColor: "#2ecc71",
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  noBoxesAvailable: {
-    backgroundColor: "#ff6b6b",
-  },
-  boxesCountText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 13,
+  ratingText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#222",
     marginLeft: 4,
   },
-  // Box availability indicator
-  boxAvailability: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(46, 204, 113, 0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginLeft: 8,
+  reviewCount: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 2,
   },
-  boxUnavailable: {
-    backgroundColor: "rgba(255, 107, 107, 0.1)",
-  },
-  boxAvailabilityText: {
-    fontSize: 13,
-    color: "#2ecc71",
+  mealsSaved: {
+    fontSize: 14,
     fontWeight: "600",
-    marginLeft: 6,
-  },
-  boxUnavailableText: {
-    color: "#ff6b6b",
+    color: "#FF8C42",
   },
 });
 

@@ -25,7 +25,7 @@ export interface OrderAmountInputProps {
 
 export default function OrderAmountInput({ partner, selectedOption }: OrderAmountInputProps) {
   const [boxAmount, setBoxAmount] = useState(1);
-  const availableBoxes = partner.boxesInfo.total_available;
+  const availableBoxes = partner.totalBoxCount;
   const price = selectedOption?.price || partner.price;
 
   function proceed() {

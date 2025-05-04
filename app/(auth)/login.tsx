@@ -4,17 +4,16 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Image,
   Alert,
-  Pressable,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useAuth } from '@/providers/auth-provider';
+import Button from '@/components/ui/button';
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState('');
@@ -93,17 +92,16 @@ export default function LoginScreen() {
           />
         </View>
 
-        <Pressable 
-          style={[styles.button, !isPhoneValid && styles.buttonDisabled]}
+        <Button 
+          title="Продолжить"
+          variant="primary"
+          size="large"
           onPress={handleContinue}
-          disabled={!isPhoneValid || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Продолжить</Text>
-          )}
-        </Pressable>
+          disabled={!isPhoneValid}
+          loading={isLoading}
+          style={styles.button}
+          fullWidth
+        />
 
         <Text style={styles.terms}>
           {/* TODO: Add terms and privacy policy */}
@@ -161,19 +159,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   button: {
-    backgroundColor: '#2ecc71',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
     marginBottom: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: '#a5d6ba',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    borderRadius: 12,
   },
   terms: {
     textAlign: 'center',

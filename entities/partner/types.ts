@@ -6,19 +6,19 @@ export interface PriceRange {
 }
 
 export interface BoxType {
+  id: string;
   name: string;
-  count: number;
-  type_id: string;
-  description: string;
-  price_range: PriceRange;
-  typical_items: string[];
-  dietary_options: string[];
+  description: string | null;
 }
 
-export interface BoxesInfo {
-  box_types: BoxType[];
-  last_updated: string;
-  total_available: number;
+export interface BusinessBox {
+  id: string;
+  boxType: BoxType;
+  count: number;
+  priceRange: PriceRange;
+  typicalItems: string[];
+  dietaryOptions: string[];
+  lastUpdated?: string;
 }
 
 export interface Partner {
@@ -37,5 +37,6 @@ export interface Partner {
     latitude: number;
   };
   distance?: number;
-  boxesInfo: BoxesInfo;
+  boxes: BusinessBox[];
+  totalBoxCount: number;
 }
