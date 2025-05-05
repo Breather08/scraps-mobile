@@ -8,12 +8,7 @@ import { useAuth } from '../../../providers/auth-provider';
 import { Database } from '../../../database.types';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
-  food_package: {
-    name: string;
-    description: string;
-    discounted_price: number;
-    image_urls: string[] | null;
-  };
+  food_package: Database['public']['Tables']['food_packages']['Row'];
   business_profile: {
     business_name: string;
   };
@@ -41,10 +36,14 @@ export default function OrdersScreen() {
       setError(null);
       
       try {
-        // Fetch all orders for current user
+        // Fetch all orders for current user with related package and business data
         const { data, error } = await supabase
           .from('orders')
-          .select("*")
+          .select(`
+            *,
+            food_package:package_id (*),
+            business_profile:business_id (business_name)
+          `)
           .eq('customer_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -99,7 +98,7 @@ export default function OrdersScreen() {
         <View style={styles.orderCardContent}>
           <Image 
             source={{ 
-              uri: item.food_package.image_urls?.[0] || 
+              uri: item.food_package.image_url || 
                    'https://via.placeholder.com/150?text=No+Image' 
             }}
             style={styles.foodImage}

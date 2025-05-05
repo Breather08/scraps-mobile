@@ -194,6 +194,7 @@ export type Database = {
         Row: {
           address: string
           average_rating: number | null
+          background_url: string | null
           business_name: string
           business_type: string | null
           city: string
@@ -210,6 +211,7 @@ export type Database = {
         Insert: {
           address: string
           average_rating?: number | null
+          background_url?: string | null
           business_name: string
           business_type?: string | null
           city?: string
@@ -226,6 +228,7 @@ export type Database = {
         Update: {
           address?: string
           average_rating?: number | null
+          background_url?: string | null
           business_name?: string
           business_type?: string | null
           city?: string
@@ -357,7 +360,7 @@ export type Database = {
           discounted_price: number
           food_type: string | null
           id: string
-          image_urls: string[] | null
+          image_url: string | null
           name: string
           original_price: number
           pickup_end_time: string
@@ -373,7 +376,7 @@ export type Database = {
           discounted_price: number
           food_type?: string | null
           id?: string
-          image_urls?: string[] | null
+          image_url?: string | null
           name: string
           original_price: number
           pickup_end_time: string
@@ -389,7 +392,7 @@ export type Database = {
           discounted_price?: number
           food_type?: string | null
           id?: string
-          image_urls?: string[] | null
+          image_url?: string | null
           name?: string
           original_price?: number
           pickup_end_time?: string

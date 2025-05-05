@@ -3,9 +3,8 @@ import type { Database } from "../../database.types";
 import type { Partner, BusinessBox, BoxType, PriceRange } from "./types";
 
 type BusinessProfileRow = Database["public"]["Tables"]["business_profiles"]["Row"];
-type BusinessBoxRow = Database["public"]["Tables"]["business_boxes"]["Row"];
-type BoxTypeRow = Database["public"]["Tables"]["box_types"]["Row"];
 type FoodPackageRow = Database["public"]["Tables"]["food_packages"]["Row"];
+type BoxTypeRow = Database["public"]["Tables"]["box_types"]["Row"];
 type OperatingHours = { open: string; close: string; day: number }[];
 
 async function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice?: number): Promise<Partner> {
@@ -44,77 +43,24 @@ async function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice
     workEndAt = new Date(today.setHours(closeHours, closeMinutes, 0, 0));
   }
   
-  // Fetch business boxes
-  const { data: businessBoxesData, error: businessBoxesError } = await supabase
-    .from('business_boxes')
-    .select(`
-      id, count, price_min, price_max, last_updated,
-      box_type:box_type_id(id, name, description)
-    `)
-    .eq('business_id', row.id);
+  let foodPackages = [];
   
-  if (businessBoxesError) {
-    console.warn('Failed to fetch business boxes:', businessBoxesError);
-  }
-  
-  // Process box data
-  let boxes: BusinessBox[] = [];
-  let totalBoxCount = 0;
-  
-  if (businessBoxesData && businessBoxesData.length > 0) {
-    // Map each business box to our BusinessBox type
-    for (const boxData of businessBoxesData) {
-      // Fetch typical items for this box
-      const { data: typicalItems } = await supabase
-        .from('box_typical_items')
-        .select('item_name')
-        .eq('business_box_id', boxData.id);
-      
-      // Fetch dietary options for this box
-      const { data: dietaryOptionsData } = await supabase
-        .from('box_dietary_options')
-        .select('dietary_options(name)')
-        .eq('business_box_id', boxData.id);
-      
-      // Extract first item from box_type array - Supabase returns foreign key relations as arrays
-      const boxTypeData = Array.isArray(boxData.box_type) && boxData.box_type.length > 0
-        ? boxData.box_type[0]
-        : (boxData.box_type as any) || { id: '', name: '', description: null };
-      
-      const boxType: BoxType = {
-        id: boxTypeData.id || '',
-        name: boxTypeData.name || '',
-        description: boxTypeData.description
-      };
-      
-      const priceRange: PriceRange = {
-        min: boxData.price_min,
-        max: boxData.price_max
-      };
-      
-      // Map dietary options data, handling cases where dietary_options might be an array or object
-      const dietaryOptions = dietaryOptionsData?.map(option => {
-        const dietaryOption = Array.isArray(option.dietary_options) && option.dietary_options.length > 0
-          ? option.dietary_options[0]
-          : (option.dietary_options as any);
-          
-        return dietaryOption?.name || '';
-      }) || [];
-      
-      // Add box to the list
-      boxes.push({
-        id: boxData.id,
-        boxType,
-        count: boxData.count,
-        priceRange,
-        typicalItems: typicalItems?.map(item => item.item_name) || [],
-        dietaryOptions,
-        lastUpdated: boxData.last_updated || undefined
-      });
-      
-      // Sum up the total count
-      totalBoxCount += boxData.count;
+  try {
+    const { data: boxes, error } = await supabase
+      .from('food_packages')
+      .select('*')
+      .eq('business_id', row.id);
+    
+    console.log('BOXES!!!', boxes);
+    
+
+    if (error) {
+      console.error('Error fetching food packages:', error);
+    } else {
+      foodPackages = boxes || [];
     }
+  } catch (error) {
+    console.error('Exception fetching food packages:', error);
   }
   
   return {
@@ -123,7 +69,7 @@ async function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice
     rating: row.average_rating ?? 0,
     address: row.address,
     logoUrl: row.logo_url ?? undefined,
-    backgroundUrl: undefined, // Background URL might need to be fetched from a different table
+    backgroundUrl: row.background_url ?? undefined, // Background URL might need to be fetched from a different table
     price: packagePrice ?? 0,
     workStartAt,
     workEndAt,
@@ -132,8 +78,8 @@ async function mapBusinessProfileToPartner(row: BusinessProfileRow, packagePrice
       latitude,
     },
     distance: 0, // Will be calculated client-side based on user location
-    boxes,
-    totalBoxCount
+    boxes: foodPackages,
+    totalBoxCount: foodPackages.reduce((acc, pack) => acc + pack.quantity, 0)
   };
 }
 

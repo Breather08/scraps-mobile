@@ -63,90 +63,42 @@ export default function PartnerScreen() {
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'business_boxes',
+        table: 'food_packages',
         filter: `business_id=eq.${partner.id}`
       }, async (payload) => {
         try {
-          // Fetch all updated boxes for this business
-          const { data: updatedBoxes, error } = await supabase
-            .from('business_boxes')
-            .select(`
-              id, count, price_min, price_max, last_updated,
-              box_type:box_type_id(id, name, description)
-            `)
+          // Fetch all updated packages for this business
+          const { data: updatedPackages, error } = await supabase
+            .from('food_packages')
+            .select('*')
             .eq('business_id', partner.id);
             
           if (error) {
-            console.warn("Failed to fetch updated boxes:", error);
+            console.warn("Failed to fetch updated packages:", error);
             return;
           }
           
-          if (!updatedBoxes || updatedBoxes.length === 0) {
+          if (!updatedPackages || updatedPackages.length === 0) {
             return;
           }
 
-          // Calculate total box count from all boxes
-          const total = updatedBoxes.reduce((sum, box) => sum + (box.count || 0), 0);
+          // Calculate total package count
+          const total = updatedPackages.reduce((sum, pkg) => sum + (pkg.quantity || 0), 0);
 
-          // Update the box count in state
+          // Update the package count in state
           setRemainingBoxes(total);
           
           // Also update the partner object to keep it in sync
           if (partner) {
-            // We need to map the updated boxes to our BusinessBox type
-            const mappedBoxes = await Promise.all(updatedBoxes.map(async (boxData) => {
-              // Extract first item from box_type array - Supabase returns foreign key relations as arrays
-              const boxTypeData = Array.isArray(boxData.box_type) && boxData.box_type.length > 0
-                ? boxData.box_type[0]
-                : (boxData.box_type as any) || { id: '', name: '', description: null };
-                
-              // Fetch typical items for this box
-              const { data: typicalItems } = await supabase
-                .from('box_typical_items')
-                .select('item_name')
-                .eq('business_box_id', boxData.id);
-              
-              // Fetch dietary options for this box
-              const { data: dietaryOptionsData } = await supabase
-                .from('box_dietary_options')
-                .select('dietary_options(name)')
-                .eq('business_box_id', boxData.id);
-                
-              // Map dietary options data, handling cases where dietary_options might be an array or object
-              const dietaryOptions = dietaryOptionsData?.map(option => {
-                const dietaryOption = Array.isArray(option.dietary_options) && option.dietary_options.length > 0
-                  ? option.dietary_options[0]
-                  : (option.dietary_options as any);
-                  
-                return dietaryOption?.name || '';
-              }) || [];
-                
-              return {
-                id: boxData.id,
-                boxType: {
-                  id: boxTypeData.id || '',
-                  name: boxTypeData.name || '',
-                  description: boxTypeData.description
-                },
-                count: boxData.count,
-                priceRange: {
-                  min: boxData.price_min,
-                  max: boxData.price_max
-                },
-                typicalItems: typicalItems?.map(item => item.item_name) || [],
-                dietaryOptions,
-                lastUpdated: boxData.last_updated || undefined
-              };
-            }));
-            
+            // No need to map packages to BusinessBox type anymore, just use FoodPackage directly
             setPartner({
               ...partner,
-              boxes: mappedBoxes,
+              boxes: updatedPackages,
               totalBoxCount: total
             });
           }
-        } catch (e) {
-          console.warn("Failed to handle box update:", e);
+        } catch (err) {
+          console.error('Error processing real-time update:', err);
         }
       })
       .subscribe();
@@ -192,28 +144,14 @@ export default function PartnerScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = ['70%'];
 
-  // Box options data
-  const boxOptions: BoxOption[] = [
-    {
-      id: 'standard',
-      name: 'Стандартный',
-      price: partner?.price || 0, 
-      description: 'Один бокс с 6-8 кусочками пиццы',
-      popular: true
-    },
-    {
-      id: 'double',
-      name: 'Двойной',
-      price: (partner?.price || 0) * 1.8,
-      description: 'Два бокса с бóльшим разнообразием',
-    },
-    {
-      id: 'family',
-      name: 'Семейный',
-      price: (partner?.price || 0) * 2.4,
-      description: 'Три бокса - для всей семьи!',
-    },
-  ];
+
+  const boxOptions: BoxOption[] = partner?.boxes.map((box) => ({
+    id: box.id,
+    name: box.name || '',
+    price: box.discounted_price,
+    description: box.description || '',
+    popular: true
+  })) || []
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
