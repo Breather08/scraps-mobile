@@ -46,7 +46,7 @@ export default function PartnerScreen() {
   const router = useRouter();
   const [selectedBoxOption, setSelectedBoxOption] = useState<string>('standard');
   const [loading, setLoading] = useState(false);
-  const [remainingBoxes, setRemainingBoxes] = useState(partner ? partner.totalBoxCount : 0);
+  // const [remainingBoxes, setRemainingBoxes] = useState(partner ? partner.totalBoxCount : 0);
   const [showReviews, setShowReviews] = useState(false);
   const { width } = useWindowDimensions();
   
@@ -55,7 +55,7 @@ export default function PartnerScreen() {
     if (!partner?.id) return;
     
     // Initialize the remaining boxes count from the partner object
-    setRemainingBoxes(partner.totalBoxCount);
+    // setRemainingBoxes(partner.totalBoxCount);
     
     // Subscribe to changes on this specific partner's business boxes
     const subscription = supabase
@@ -86,15 +86,13 @@ export default function PartnerScreen() {
           const total = updatedPackages.reduce((sum, pkg) => sum + (pkg.quantity || 0), 0);
 
           // Update the package count in state
-          setRemainingBoxes(total);
+          // setRemainingBoxes(total);
           
           // Also update the partner object to keep it in sync
           if (partner) {
             // No need to map packages to BusinessBox type anymore, just use FoodPackage directly
             setPartner({
               ...partner,
-              boxes: updatedPackages,
-              totalBoxCount: total
             });
           }
         } catch (err) {
@@ -190,9 +188,16 @@ export default function PartnerScreen() {
     setSelectedBoxOption(id);
   }, []);
   
-  const getSelectedBoxOption = useCallback((): BoxOption => {
-    return boxOptions.find(option => option.id === selectedBoxOption) || boxOptions[0];
-  }, [boxOptions, selectedBoxOption]);
+  const getSelectedBoxOption = () => ({
+    name: 'asd',
+    price: 123,
+    description: 'asd',
+    id: 'asd',
+    popular: false
+  } as BoxOption)
+  // const getSelectedBoxOption = useCallback((): BoxOption => {
+  //   return boxOptions.find(option => option.id === selectedBoxOption) || boxOptions[0];
+  // }, [boxOptions, selectedBoxOption]);
   
   // Mock reviews data
   const reviews = [

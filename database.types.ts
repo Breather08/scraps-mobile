@@ -9,74 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      box_dietary_options: {
-        Row: {
-          business_box_id: string
-          dietary_option_id: string
-        }
-        Insert: {
-          business_box_id: string
-          dietary_option_id: string
-        }
-        Update: {
-          business_box_id?: string
-          dietary_option_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "box_dietary_options_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "business_boxes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "box_dietary_options_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes"
-            referencedColumns: ["box_id"]
-          },
-          {
-            foreignKeyName: "box_dietary_options_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["box_id"]
-          },
-          {
-            foreignKeyName: "box_dietary_options_dietary_option_id_fkey"
-            columns: ["dietary_option_id"]
-            isOneToOne: false
-            referencedRelation: "dietary_options"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      box_types: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       box_typical_items: {
         Row: {
           business_box_id: string
@@ -93,102 +25,7 @@ export type Database = {
           id?: string
           item_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "box_typical_items_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "business_boxes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "box_typical_items_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes"
-            referencedColumns: ["box_id"]
-          },
-          {
-            foreignKeyName: "box_typical_items_business_box_id_fkey"
-            columns: ["business_box_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["box_id"]
-          },
-        ]
-      }
-      business_boxes: {
-        Row: {
-          box_type_id: string
-          business_id: string
-          count: number
-          id: string
-          last_updated: string | null
-          price_max: number
-          price_min: number
-        }
-        Insert: {
-          box_type_id: string
-          business_id: string
-          count?: number
-          id?: string
-          last_updated?: string | null
-          price_max: number
-          price_min: number
-        }
-        Update: {
-          box_type_id?: string
-          business_id?: string
-          count?: number
-          id?: string
-          last_updated?: string | null
-          price_max?: number
-          price_min?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_boxes_box_type_id_fkey"
-            columns: ["box_type_id"]
-            isOneToOne: false
-            referencedRelation: "box_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_boxes_box_type_id_fkey"
-            columns: ["box_type_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes"
-            referencedColumns: ["box_type_id"]
-          },
-          {
-            foreignKeyName: "business_boxes_box_type_id_fkey"
-            columns: ["box_type_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["box_type_id"]
-          },
-          {
-            foreignKeyName: "business_boxes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "business_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_boxes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "business_boxes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
-          },
-        ]
+        Relationships: []
       }
       business_profiles: {
         Row: {
@@ -287,67 +124,35 @@ export type Database = {
           },
         ]
       }
-      dietary_options: {
-        Row: {
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       favorites: {
         Row: {
-          business_id: string
           created_at: string | null
           customer_id: string
+          package_id: string
         }
         Insert: {
-          business_id: string
           created_at?: string | null
           customer_id: string
+          package_id: string
         }
         Update: {
-          business_id?: string
           created_at?: string | null
           customer_id?: string
+          package_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "favorites_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "business_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "favorites_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
-          },
           {
             foreignKeyName: "favorites_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "customer_profiles"
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "food_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -409,20 +214,6 @@ export type Database = {
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "food_packages_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "food_packages_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
-          },
         ]
       }
       orders: {
@@ -475,20 +266,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "orders_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
           },
           {
             foreignKeyName: "orders_customer_id_fkey"
@@ -592,20 +369,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "reviews_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
           },
           {
             foreignKeyName: "reviews_customer_id_fkey"
@@ -718,81 +481,31 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_business_box_summary: {
+      vw_customer_favorites: {
         Row: {
+          available_food_types: number | null
+          available_packages: number | null
           business_id: string | null
           business_name: string | null
-          last_updated: string | null
-          total_boxes_available: number | null
+          customer_id: string | null
+          favorited_at: string | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "business_profiles_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: true
+            foreignKeyName: "favorites_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      vw_business_boxes: {
-        Row: {
-          box_id: string | null
-          box_type_id: string | null
-          box_type_name: string | null
-          business_id: string | null
-          business_name: string | null
-          count: number | null
-          dietary_options: string[] | null
-          last_updated: string | null
-          price_max: number | null
-          price_min: number | null
-          typical_items: string[] | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "business_boxes_business_id_fkey"
+            foreignKeyName: "favorites_package_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
-            referencedRelation: "business_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_boxes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_box_summary"
-            referencedColumns: ["business_id"]
-          },
-          {
-            foreignKeyName: "business_boxes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "vw_business_boxes_detail"
-            referencedColumns: ["business_id"]
-          },
-        ]
-      }
-      vw_business_boxes_detail: {
-        Row: {
-          box_id: string | null
-          box_type_id: string | null
-          box_type_name: string | null
-          business_id: string | null
-          business_name: string | null
-          count: number | null
-          dietary_options: string[] | null
-          last_updated: string | null
-          price_max: number | null
-          price_min: number | null
-          typical_items: string[] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_profiles_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "food_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -927,6 +640,10 @@ export type Database = {
         }
         Returns: Json
       }
+      add_favorite: {
+        Args: { p_customer_id: string; p_business_id: string }
+        Returns: boolean
+      }
       addauth: {
         Args: { "": string }
         Returns: boolean
@@ -1005,6 +722,10 @@ export type Database = {
       bytea: {
         Args: { "": unknown } | { "": unknown }
         Returns: string
+      }
+      calculate_distance: {
+        Args: { lat1: number; lon1: number; lat2: number; lon2: number }
+        Returns: number
       }
       delete_box_type: {
         Args: { business_id_param: string; type_id_param: string }
@@ -1316,6 +1037,24 @@ export type Database = {
           last_updated: string
         }[]
       }
+      get_businesses_with_available_packages: {
+        Args: {
+          p_lat: number
+          p_lng: number
+          p_radius_km?: number
+          p_customer_id?: string
+        }
+        Returns: {
+          business_id: string
+          business_name: string
+          logo_url: string
+          latitude: number
+          longitude: number
+          distance_km: number
+          available_packages: number
+          is_favorite: boolean
+        }[]
+      }
       get_businesses_with_boxes_nearby: {
         Args: {
           lat: number
@@ -1329,6 +1068,19 @@ export type Database = {
           distance_km: number
           total_boxes_available: number
           box_types: string[]
+        }[]
+      }
+      get_customer_favorites: {
+        Args: { p_customer_id: string }
+        Returns: {
+          business_id: string
+          business_name: string
+          logo_url: string
+          latitude: number
+          longitude: number
+          available_food_types: number
+          available_packages: number
+          favorited_at: string
         }[]
       }
       get_nearby_businesses: {
@@ -1355,6 +1107,21 @@ export type Database = {
           box_types: Json
         }[]
       }
+      get_nearby_favorite_businesses: {
+        Args: {
+          p_customer_id: string
+          p_lat: number
+          p_lng: number
+          p_radius_km?: number
+        }
+        Returns: {
+          business_id: string
+          business_name: string
+          logo_url: string
+          distance_km: number
+          available_packages: number
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
@@ -1370,6 +1137,10 @@ export type Database = {
       gidx_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      is_favorite: {
+        Args: { p_customer_id: string; p_business_id: string }
+        Returns: boolean
       }
       json: {
         Args: { "": unknown }
@@ -1576,6 +1347,10 @@ export type Database = {
       random_astana_location: {
         Args: Record<PropertyKey, never>
         Returns: unknown
+      }
+      remove_favorite: {
+        Args: { p_customer_id: string; p_business_id: string }
+        Returns: boolean
       }
       spheroid_in: {
         Args: { "": unknown }

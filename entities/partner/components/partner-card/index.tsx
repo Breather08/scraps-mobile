@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -14,20 +14,27 @@ import { router } from "expo-router";
 import { usePartner } from "../../providers/partners-provider";
 import { format as formatDate } from "date-fns/format";
 import { LinearGradient } from 'expo-linear-gradient'
+import { setFavoritePartner } from "@/entities/favorites/api";
 
 interface PartnerCardProps {
   partner: Partner;
+  onToggleFavorite?: (partnerId: string) => void;
 }
 
-const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
+const PartnerCard: React.FC<PartnerCardProps> = ({ partner, onToggleFavorite }) => {
   const { setPartner } = usePartner();
+  const [isLoading, setIsLoading] = useState(false);
   
   // Get collection time from work hours
   const collectionTimeStart = formatDate(partner.workStartAt, "h:mm a");
   const collectionTimeEnd = formatDate(partner.workEndAt, "h:mm a");
   
-  // Calculate meals saved (just a placeholder based on totalBoxCount)
-  const mealsSaved = partner.totalBoxCount * 5; // Assuming each box saves 5 meals on average
+  const toggleFavorite = async (partnerId: string) => {
+    setIsLoading(true);
+    await setFavoritePartner(partnerId);
+    setIsLoading(false);
+  };
+
   
   // Determine business category (hardcoded for now, since Partner type doesn't have a category field)
   const categories = ["Dessert", "Bakery"];
@@ -56,9 +63,10 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
           <TouchableOpacity 
             style={styles.favoriteIcon}
             activeOpacity={0.7}
+            onPress={() => onToggleFavorite && onToggleFavorite(partner.id)}
           >
             <MaterialCommunityIcons
-              name="heart-outline"
+              name={partner.isFavorite ? "heart" : "heart-outline"}
               size={22}
               color="#fff"
             />
@@ -89,7 +97,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
             </View>
           </View>
           
-          <Text style={styles.mealsSaved}>{formatNumber(mealsSaved, { precision: 0 })} meals saved</Text>
+          {/* <Text style={styles.mealsSaved}>{formatNumber(mealsSaved, { precision: 0 })} meals saved</Text> */}
         </View>
       </View>
     </Pressable>

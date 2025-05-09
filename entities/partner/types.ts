@@ -43,7 +43,6 @@ export interface Partner {
   workStartAt: Date;
   workEndAt: Date;
   rating: number;
-  price: number;
   logoUrl?: string;
   backgroundUrl?: string;
   isFavorite?: boolean;
@@ -53,6 +52,4 @@ export interface Partner {
     latitude: number;
   };
   distance?: number;
-  boxes: FoodPackage[];
-  totalBoxCount: number;
 }
