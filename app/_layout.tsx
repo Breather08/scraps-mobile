@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, ActivityIndicator, View } from "react-native";
@@ -17,7 +17,7 @@ function InnerLayout() {
     } else {
       router.replace("/(tabs)");
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (

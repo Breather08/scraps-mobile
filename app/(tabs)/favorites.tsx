@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { supabase } from '@/services/supabase';
+
 import { useAuth } from '@/providers/auth-provider';
 import PartnerCard from '@/entities/partner/components/partner-card';
 import { Partner } from '@/entities/partner/types';
 import { fetchFavoritePartners } from '@/entities/partner/api';
-import { setFavoritePartner } from '@/entities/favorites/api';
+
 
 export default function FavoritesScreen() {
   const { user } = useAuth();

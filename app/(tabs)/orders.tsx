@@ -1,14 +1,22 @@
-import { useState, useEffect } from 'react';
-import { FlatList, Text, View, StyleSheet, Image, Pressable, ActivityIndicator } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { TabView, TabBar } from 'react-native-tab-view';
-import { useWindowDimensions } from 'react-native';
-import { supabase } from '@/services/supabase';
-import { useAuth } from '@/providers/auth-provider';
-import { Database } from '@/database.types';
+import { useState, useEffect } from "react";
+import {
+  FlatList,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { TabView, TabBar } from "react-native-tab-view";
+import { useWindowDimensions } from "react-native";
+import { supabase } from "@/services/supabase";
+import { useAuth } from "@/providers/auth-provider";
+import { Database } from "@/database.types";
 
-type Order = Database['public']['Tables']['orders']['Row'] & {
-  food_package: Database['public']['Tables']['food_packages']['Row'];
+type Order = Database["public"]["Tables"]["orders"]["Row"] & {
+  food_package: Database["public"]["Tables"]["food_packages"]["Row"];
   business_profile: {
     business_name: string;
   };
@@ -24,37 +32,31 @@ export default function OrdersScreen() {
 
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'upcoming', title: 'Upcoming' },
-    { key: 'past', title: 'Past' },
+    { key: "upcoming", title: "Upcoming" },
+    { key: "past", title: "Past" },
   ]);
 
   useEffect(() => {
     if (!user?.id) return;
-    
+
     const fetchOrders = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
-        // Fetch all orders for current user with related package and business data
-        const { data, error } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            food_package:package_id (*),
-            business_profile:business_id (business_name)
-          `)
-          .eq('customer_id', user.id)
-          .order('created_at', { ascending: false });
+        // Use the new SQL function to get user orders
+        const { data, error } = await supabase.rpc("get_user_orders", {
+          user_id: user.id,
+        });
 
         if (error) throw error;
 
-        // Split orders into upcoming and past
+        // Process and categorize the orders
         const upcoming: Order[] = [];
         const past: Order[] = [];
 
         data.forEach((order: Order) => {
-          if (order.status === 'pending' || order.status === 'confirmed') {
+          if (order.status === "pending" || order.status === "confirmed") {
             upcoming.push(order);
           } else {
             past.push(order);
@@ -64,8 +66,8 @@ export default function OrdersScreen() {
         setUpcomingOrders(upcoming);
         setPastOrders(past);
       } catch (err) {
-        console.error('Error fetching orders:', err);
-        setError('Failed to load orders. Please try again.');
+        console.error("Error fetching orders:", err);
+        setError("Failed to load orders. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -77,59 +79,67 @@ export default function OrdersScreen() {
   const renderTabBar = (props: any) => (
     <TabBar
       {...props}
-      indicatorStyle={{ backgroundColor: '#2ecc71' }}
-      style={{ backgroundColor: 'white' }}
+      indicatorStyle={{ backgroundColor: "#2ecc71" }}
+      style={{ backgroundColor: "white" }}
       activeColor="#2ecc71"
       inactiveColor="#718096"
-      labelStyle={{ fontWeight: 'bold' }}
+      labelStyle={{ fontWeight: "bold" }}
     />
   );
 
   const renderOrderItem = ({ item }: { item: Order }) => {
-    const isUpcoming = item.status === 'pending' || item.status === 'confirmed';
-    const formattedDate = new Date(item.created_at || '').toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    
+    const isUpcoming = item.status === "pending" || item.status === "confirmed";
+    const formattedDate = new Date(item.created_at || "").toLocaleDateString(
+      "en-US",
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }
+    );
+
     return (
       <View style={styles.orderCard}>
         <View style={styles.orderCardContent}>
-          <Image 
-            source={{ 
-              uri: item.food_package.image_url || 
-                   'https://via.placeholder.com/150?text=No+Image' 
+          <Image
+            source={{
+              uri:
+                item.food_package.image_url ||
+                "https://via.placeholder.com/150?text=No+Image",
             }}
             style={styles.foodImage}
           />
           <View style={styles.orderDetails}>
             <Text style={styles.orderName}>{item.food_package.name}</Text>
-            <Text style={styles.orderDescription}>{item.food_package.description}</Text>
-            <Text style={styles.orderPrice}>${item.food_package.discounted_price.toFixed(2)}</Text>
+            <Text style={styles.orderDescription}>
+              {item.food_package.description}
+            </Text>
+            <Text style={styles.orderPrice}>
+              ${item.food_package.discounted_price.toFixed(2)}
+            </Text>
           </View>
           <Text style={styles.orderDate}>{formattedDate}</Text>
         </View>
         <View style={styles.orderStatus}>
-          <Text 
+          <Text
             style={[
-              styles.statusText, 
-              isUpcoming ? styles.readyStatus : styles.completedStatus
+              styles.statusText,
+              isUpcoming ? styles.readyStatus : styles.completedStatus,
             ]}
           >
-            {isUpcoming ? 'Ready for pickup' : 'Completed'}
+            {isUpcoming ? "Ready for pickup" : "Completed"}
           </Text>
         </View>
       </View>
     );
   };
 
-  const renderEmptyOrders = (type: 'upcoming' | 'past') => (
+  const renderEmptyOrders = (type: "upcoming" | "past") => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        {type === 'upcoming' 
-          ? 'No upcoming orders. Browse our partners to place an order!' 
-          : 'No past orders yet.'}
+        {type === "upcoming"
+          ? "No upcoming orders. Browse our partners to place an order!"
+          : "No past orders yet."}
       </Text>
     </View>
   );
@@ -141,7 +151,7 @@ export default function OrdersScreen() {
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Pressable 
+          <Pressable
             style={styles.retryButton}
             onPress={() => {
               // Re-fetch orders
@@ -161,7 +171,7 @@ export default function OrdersScreen() {
           renderItem={renderOrderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={() => renderEmptyOrders('upcoming')}
+          ListEmptyComponent={() => renderEmptyOrders("upcoming")}
         />
       )}
     </View>
@@ -174,7 +184,7 @@ export default function OrdersScreen() {
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Pressable 
+          <Pressable
             style={styles.retryButton}
             onPress={() => {
               // Re-fetch orders
@@ -194,7 +204,7 @@ export default function OrdersScreen() {
           renderItem={renderOrderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={() => renderEmptyOrders('past')}
+          ListEmptyComponent={() => renderEmptyOrders("past")}
         />
       )}
     </View>
@@ -202,9 +212,9 @@ export default function OrdersScreen() {
 
   const renderScene = ({ route }: { route: { key: string } }) => {
     switch (route.key) {
-      case 'upcoming':
+      case "upcoming":
         return renderUpcomingScene();
-      case 'past':
+      case "past":
         return renderPastScene();
       default:
         return null;
@@ -229,17 +239,17 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
     paddingHorizontal: 20,
   },
   subtitle: {
     fontSize: 16,
-    color: '#718096',
+    color: "#718096",
     paddingHorizontal: 20,
   },
   sceneContainer: {
@@ -252,19 +262,19 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   orderCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     marginBottom: 15,
     padding: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
   },
   orderCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   foodImage: {
     width: 80,
@@ -277,80 +287,80 @@ const styles = StyleSheet.create({
   },
   orderName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   orderDescription: {
     fontSize: 14,
-    color: '#718096',
+    color: "#718096",
     marginBottom: 4,
   },
   orderPrice: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2ecc71',
+    fontWeight: "bold",
+    color: "#2ecc71",
   },
   orderDate: {
     fontSize: 14,
-    color: '#718096',
-    textAlign: 'right',
+    color: "#718096",
+    textAlign: "right",
   },
   orderStatus: {
     marginTop: 12,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   statusText: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   readyStatus: {
-    backgroundColor: '#e6f9ef',
-    color: '#2ecc71',
+    backgroundColor: "#e6f9ef",
+    color: "#2ecc71",
   },
   completedStatus: {
-    backgroundColor: '#f1f1f1',
-    color: '#718096',
+    backgroundColor: "#f1f1f1",
+    color: "#718096",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     height: 300,
   },
   emptyText: {
     fontSize: 16,
-    color: '#718096',
-    textAlign: 'center',
+    color: "#718096",
+    textAlign: "center",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
     fontSize: 16,
-    color: '#e74c3c',
-    textAlign: 'center',
+    color: "#e74c3c",
+    textAlign: "center",
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: "#2ecc71",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   loader: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

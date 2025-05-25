@@ -4,7 +4,6 @@ import * as SecureStore from "expo-secure-store";
 interface AuthTokens {
   accessToken: string;
   refreshToken: string;
-  // unix timestamp in ms
   expiresAt: number;
 }
 
@@ -51,6 +50,7 @@ async function getStoredTokens(): Promise<AuthTokens | null> {
   return { accessToken, refreshToken, expiresAt: Number(expiresAtStr) };
 }
 
+// TODO: Implement auth. Replace mocks
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,16 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     (async () => {
       const tokens = await getStoredTokens();
       if (tokens) {
-        // Ideally validate token expiry here
         if (Date.now() < tokens.expiresAt) {
-          // fetch user profile using token or decode token
           const decoded: AuthUser = {
             id: "placeholder-id",
             phone: "" /* extract from jwt in real implementation */,
           };
           setUser(decoded);
         } else {
-          // attempt refresh
           await refreshSession(tokens.refreshToken);
         }
       }
@@ -79,7 +76,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   async function refreshSession(refreshToken: string) {
     try {
-      // Call backend refresh endpoint
       const res = await new Promise<AuthTokens>((resolve) => {
         setTimeout(() => {
           resolve({
@@ -112,11 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         resolve();
       }, 250);
     });
-    // await fetch("https://api.example.com/auth/request-otp", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ phone }),
-    // });
   };
 
   const verifyOtp = async (phone: string, otp: string) => {
@@ -156,7 +147,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, requestOtp, verifyOtp, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, requestOtp, verifyOtp, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

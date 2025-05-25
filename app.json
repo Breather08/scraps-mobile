@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expoapp",
-    "slug": "expoapp",
+    "name": "sarqyt_app",
+    "slug": "sarqyt_app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

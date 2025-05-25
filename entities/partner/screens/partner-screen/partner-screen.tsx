@@ -33,9 +33,9 @@ export default function PartnerScreen() {
 
     const [partnerData, packagesData] = await Promise.all([
       fetchPartnerById(id as string),
-      fetchBusinessPackages(id as string)
+      fetchBusinessPackages(id as string),
     ]);
-    
+
     setPartner(partnerData);
     setPackages(packagesData);
     setLoading(false);
@@ -46,16 +46,13 @@ export default function PartnerScreen() {
   }, [id]);
 
   function handleReserve(packageId: string) {
-    console.log(`Reserve package ${packageId}`);
-    // Implementation would go here to handle the reservation
-    // This would typically navigate to a checkout or confirmation screen
-    // Navigate back to the partners list for now
-    router.back();
-    // In a real app, we would navigate to a reservation screen
-    console.log(`Reserved package ${packageId}`);
+    // TODO: Implement
   }
 
-  function calculateDiscountPercentage(original: number, discounted: number): number {
+  function calculateDiscountPercentage(
+    original: number,
+    discounted: number
+  ): number {
     return Math.round(((original - discounted) / original) * 100);
   }
 
@@ -72,11 +69,12 @@ export default function PartnerScreen() {
     return (
       <View style={styles.errorContainer}>
         <MaterialIcons name="error-outline" size={64} color="#e74c3c" />
-        <Text style={styles.errorText}>
-          {error || "Partner not found"}
-        </Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+        <Text style={styles.errorText}>{error || "Партнер не найден"}</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Назад</Text>
         </TouchableOpacity>
       </View>
     );
@@ -85,60 +83,80 @@ export default function PartnerScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header image */}
         <View style={styles.headerContainer}>
           <Image
-            source={{ 
-              uri: partner.backgroundUrl || "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+            source={{
+              uri:
+                partner.backgroundUrl ||
+                "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
             }}
             style={styles.headerImage}
             resizeMode="cover"
           />
         </View>
 
-        {/* Partner info section */}
         <View style={styles.partnerInfoContainer}>
           <View style={styles.partnerNameRating}>
             <Text style={styles.partnerName}>{partner.name}</Text>
             <View style={styles.ratingContainer}>
               <MaterialIcons name="star" size={18} color="#FFD700" />
               <Text style={styles.ratingText}>{partner.rating}</Text>
-              <Text style={styles.reviewCount}>({Math.floor(Math.random() * 500)})</Text>
+              <Text style={styles.reviewCount}>
+                ({Math.floor(Math.random() * 500)})
+              </Text>
             </View>
           </View>
-          
+
           <Text style={styles.partnerDescription}>{partner.description}</Text>
-          
+
           <View style={styles.detailsContainer}>
             <View style={styles.detailItem}>
               <MaterialIcons name="location-on" size={20} color="#777" />
               <Text style={styles.detailText}>{partner.address}</Text>
             </View>
-            
+
             <View style={styles.detailItem}>
               <MaterialIcons name="access-time" size={20} color="#777" />
               <Text style={styles.detailText}>
-                Pickup: {partner.workStartAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {partner.workEndAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                Самовывоз:{" "}
+                {partner.workStartAt.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                -{" "}
+                {partner.workEndAt.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </Text>
             </View>
 
             <View style={styles.detailItem}>
-              <MaterialCommunityIcons name="food-takeout-box" size={20} color="#2ecc71" />
+              <MaterialCommunityIcons
+                name="food-takeout-box"
+                size={20}
+                color="#2ecc71"
+              />
               <Text style={styles.savedMealsText}>
-                {partner.mealsSaved?.toLocaleString() || "0"} meals saved
+                {partner.mealsSaved?.toLocaleString() || "0"} блюд спасено
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Available packages section */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Available packages</Text>
-          
+          <Text style={styles.sectionTitle}>Доступные наборы</Text>
+
           {packages.length === 0 ? (
             <View style={styles.noPackagesContainer}>
-              <MaterialCommunityIcons name="package-variant-closed" size={64} color="#e0e0e0" />
-              <Text style={styles.noPackagesText}>No packages available at this time</Text>
+              <MaterialCommunityIcons
+                name="package-variant-closed"
+                size={64}
+                color="#e0e0e0"
+              />
+              <Text style={styles.noPackagesText}>
+                Нет доступных наборов в данный момент
+              </Text>
             </View>
           ) : (
             packages.map((pkg) => {
@@ -146,30 +164,33 @@ export default function PartnerScreen() {
                 pkg.original_price,
                 pkg.discounted_price
               );
-              
+
               return (
                 <View key={pkg.id} style={styles.packageContainer}>
-                  {/* Discount badge */}
                   {discountPercentage > 0 && (
                     <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>{discountPercentage}% OFF</Text>
+                      <Text style={styles.discountText}>
+                        {discountPercentage}% СКИДКА
+                      </Text>
                     </View>
                   )}
-                  
-                  {/* Package image */}
-                  <Image 
-                    source={{ 
-                      uri: pkg.image_url || "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                    }} 
+
+                  <Image
+                    source={{
+                      uri:
+                        pkg.image_url ||
+                        "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                    }}
                     style={styles.packageImage}
                     resizeMode="cover"
                   />
-                  
-                  {/* Package details */}
+
                   <View style={styles.packageDetails}>
                     <Text style={styles.packageName}>{pkg.name}</Text>
-                    <Text style={styles.packageDescription}>{pkg.description}</Text>
-                    
+                    <Text style={styles.packageDescription}>
+                      {pkg.description}
+                    </Text>
+
                     <View style={styles.priceReserveContainer}>
                       <View style={styles.priceContainer}>
                         <Text style={styles.originalPrice}>
@@ -179,12 +200,12 @@ export default function PartnerScreen() {
                           ${pkg.discounted_price.toFixed(2)}
                         </Text>
                       </View>
-                      
-                      <TouchableOpacity 
+
+                      <TouchableOpacity
                         style={styles.reserveButton}
                         onPress={() => handleReserve(pkg.id)}
                       >
-                        <Text style={styles.reserveButtonText}>Reserve</Text>
+                        <Text style={styles.reserveButtonText}>Заказать</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -193,8 +214,7 @@ export default function PartnerScreen() {
             })
           )}
         </View>
-        
-        {/* Add padding at bottom for scroll */}
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>

@@ -1,20 +1,27 @@
 import React from "react";
-import { 
-  Pressable, 
-  StyleSheet, 
-  Text, 
-  View, 
-  ViewStyle, 
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
   TextStyle,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 
-// Brand color constant
+// TODO: Use theme colors
 const BRAND_COLOR = "#2ecc71";
 const DANGER_COLOR = "#ff6b6b";
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "text" | "danger" | "icon" | "translucent";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "text"
+  | "danger"
+  | "icon"
+  | "translucent";
 export type ButtonSize = "small" | "medium" | "large";
 export type IconType = "material" | "ionicons";
 
@@ -37,13 +44,13 @@ export interface ButtonProps {
   iconType?: IconType;
 }
 
-export default function Button({ 
-  children, 
-  title, 
-  onPress, 
-  variant = "primary", 
-  size = "medium", 
-  disabled = false, 
+export default function Button({
+  children,
+  title,
+  onPress,
+  variant = "primary",
+  size = "medium",
+  disabled = false,
   loading = false,
   leftIcon,
   rightIcon,
@@ -53,35 +60,44 @@ export default function Button({
   iconSize,
   fullWidth = false,
   iconOnly = false,
-  iconType = "material"
+  iconType = "material",
 }: ButtonProps) {
-  
-  // Determine icon sizing based on button size
   const getIconSize = () => {
     if (iconSize) return iconSize;
-    
+
     switch (size) {
-      case "small": return 16;
-      case "large": return 24;
-      default: return 20;
+      case "small":
+        return 16;
+      case "large":
+        return 24;
+      default:
+        return 20;
     }
   };
-  
+
   // Determine the icon color based on variant and disabled state
   const getIconColor = () => {
     if (iconColor) return iconColor;
-    
+
     if (disabled) return "#999";
-    
+
     switch (variant) {
-      case "primary": return "#fff";
-      case "secondary": return BRAND_COLOR;
-      case "outline": return BRAND_COLOR;
-      case "text": return BRAND_COLOR;
-      case "danger": return variant === "danger" ? "#fff" : DANGER_COLOR;
-      case "icon": return BRAND_COLOR;
-      case "translucent": return "#fff";
-      default: return "#fff";
+      case "primary":
+        return "#fff";
+      case "secondary":
+        return BRAND_COLOR;
+      case "outline":
+        return BRAND_COLOR;
+      case "text":
+        return BRAND_COLOR;
+      case "danger":
+        return variant === "danger" ? "#fff" : DANGER_COLOR;
+      case "icon":
+        return BRAND_COLOR;
+      case "translucent":
+        return "#fff";
+      default:
+        return "#fff";
     }
   };
 
@@ -94,7 +110,7 @@ export default function Button({
     disabled && variant === "primary" && styles.disabledPrimaryButton,
     disabled && variant === "danger" && styles.disabledDangerButton,
     fullWidth && styles.fullWidth,
-    style
+    style,
   ];
 
   const textStyles = [
@@ -102,54 +118,54 @@ export default function Button({
     styles[`${variant}Text`],
     styles[`${size}Text`],
     disabled && styles.disabledText,
-    textStyle
+    textStyle,
   ];
 
   const contentContainerStyles = [
     styles.contentContainer,
-    (leftIcon || rightIcon) && styles.contentWithIcon
+    (leftIcon || rightIcon) && styles.contentWithIcon,
   ];
 
-  // Render loading state
   if (loading) {
     return (
       <Pressable style={buttonStyles} disabled={true}>
         <View style={contentContainerStyles}>
-          <ActivityIndicator 
-            size={size === "small" ? "small" : "small"} 
-            color={variant === "primary" ? "#fff" : BRAND_COLOR} 
+          <ActivityIndicator
+            size={size === "small" ? "small" : "small"}
+            color={variant === "primary" ? "#fff" : BRAND_COLOR}
           />
-          {title && <Text style={[textStyles, styles.loadingText]}>{title}</Text>}
+          {title && (
+            <Text style={[textStyles, styles.loadingText]}>{title}</Text>
+          )}
         </View>
       </Pressable>
     );
   }
 
-  // Icon-only button rendering
   if (variant === "icon" || iconOnly) {
     return (
-      <Pressable 
+      <Pressable
         style={({ pressed }) => [
           variant === "icon" ? styles.iconButton : buttonStyles,
           pressed && !disabled && styles.pressed,
           disabled && styles.disabledButton,
-          style
-        ]} 
+          style,
+        ]}
         onPress={onPress}
         disabled={disabled}
       >
         {leftIcon && iconType === "material" && (
-          <MaterialCommunityIcons 
-            name={leftIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
+          <MaterialCommunityIcons
+            name={leftIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
           />
         )}
         {leftIcon && iconType === "ionicons" && (
-          <Ionicons 
-            name={leftIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
+          <Ionicons
+            name={leftIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
           />
         )}
         {children}
@@ -157,54 +173,53 @@ export default function Button({
     );
   }
 
-  // Regular button rendering
   return (
-    <Pressable 
+    <Pressable
       style={({ pressed }) => [
         ...buttonStyles,
         pressed && !disabled && styles.pressed,
         pressed && !disabled && variant === "primary" && styles.primaryPressed,
         pressed && !disabled && variant === "danger" && styles.dangerPressed,
-      ]} 
+      ]}
       onPress={onPress}
       disabled={disabled}
     >
       <View style={contentContainerStyles}>
         {leftIcon && iconType === "material" && (
-          <MaterialCommunityIcons 
-            name={leftIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
-            style={styles.leftIcon} 
+          <MaterialCommunityIcons
+            name={leftIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
+            style={styles.leftIcon}
           />
         )}
         {leftIcon && iconType === "ionicons" && (
-          <Ionicons 
-            name={leftIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
-            style={styles.leftIcon} 
+          <Ionicons
+            name={leftIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
+            style={styles.leftIcon}
           />
         )}
-        
+
         {title && <Text style={textStyles}>{title}</Text>}
-        
+
         {children}
-        
+
         {rightIcon && iconType === "material" && (
-          <MaterialCommunityIcons 
-            name={rightIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
-            style={styles.rightIcon} 
+          <MaterialCommunityIcons
+            name={rightIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
+            style={styles.rightIcon}
           />
         )}
         {rightIcon && iconType === "ionicons" && (
-          <Ionicons 
-            name={rightIcon as any} 
-            size={getIconSize()} 
-            color={getIconColor()} 
-            style={styles.rightIcon} 
+          <Ionicons
+            name={rightIcon as any}
+            size={getIconSize()}
+            color={getIconColor()}
+            style={styles.rightIcon}
           />
         )}
       </View>
@@ -347,5 +362,5 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-  }
+  },
 });

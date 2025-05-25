@@ -4,6 +4,8 @@ import { fromPartnerDto } from "./transformers/from-partner-dto";
 import { BusinessProfileRow } from "./transformers/dto/types";
 import { useAuth } from "@/providers/auth-provider";
 
+// TODO: Replace all raw sql with supabase rpc
+
 export const fetchActivePartners = async (): Promise<Partner[]> => {
   const { data, error } = await supabase
     .from("business_profiles")
@@ -40,7 +42,6 @@ export const fetchPartnersByCategory = async (
   categoryId: string,
 ): Promise<Partner[]> => {
   // TODO: Implement filtering by category
-  // For now, just return all partners
   return fetchAllPartners();
 };
 

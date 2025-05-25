@@ -5,7 +5,7 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Image,
+
   ActivityIndicator,
   Switch,
   Alert,
@@ -14,7 +14,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/providers/auth-provider";
-import { router } from "expo-router";
+
 import Island from "@/components/island";
 import Button from "@/components/ui/button";
 

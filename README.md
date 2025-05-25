@@ -1,50 +1,88 @@
-# Welcome to your Expo app 👋
+# Sarqyt - Food Waste Reduction App 🍽️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Sarqyt is a mobile application inspired by TooGoodToGo, designed to connect users with local food businesses that have surplus food to sell at a discount, helping reduce food waste while offering great deals to customers.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Phone Authentication**: Secure login and registration using phone number and OTP verification
+- **Partner Exploration**: Browse nearby food businesses with surplus food packages
+- **Partner Details**: View detailed information about each partner, including food packages, ratings, and pickup times
+- **Filter & Search**: Find partners by proximity, rating, price, or search by name
+- **Checkout Process**: Select food packages and complete the ordering process
+- **Orders History**: Track past and upcoming orders
+- **Multilingual Support**: Available in English and Russian
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Frontend**: React Native with Expo
+- **Navigation**: Expo Router (file-based routing)
+- **Database & Backend**: Supabase (PostgreSQL)
+- **State Management**: React Context API
+- **Styling**: React Native StyleSheet
+- **Location Services**: Expo Location
+- **Maps**: React Native Maps
 
-   ```bash
-    npx expo start
-   ```
+## Project Structure
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+sarqyt/
+├── app/                  # Main application screens and navigation
+│   ├── (auth)/           # Authentication screens
+│   ├── (tabs)/           # Main tab screens
+│   └── partner/          # Partner detail screens
+├── components/           # Reusable UI components
+├── entities/             # Domain-specific modules
+│   ├── food-package/     # Food package related code
+│   └── partner/          # Partner related code
+├── providers/            # Context providers
+├── services/             # API and service integration
+└── utils/                # Utility functions
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-## Learn more
+### Prerequisites
 
-To learn more about developing your project with Expo, look at the following resources:
+- Node.js (v18 or newer)
+- pnpm
+- Expo CLI
+- Supabase account
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Setup
 
-## Join the community
+1. Clone the repository
 
-Join our community of developers creating universal apps.
+2. Install dependencies
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   ```bash
+   pnpm install
+   ```
+
+3. Configure environment variables
+
+   Create a `.env` file in the root directory with the following variables:
+
+   ```
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Start the development server
+
+   ```bash
+   npx expo start
+   ```
+
+5. Open the app in your preferred environment:
+   - iOS Simulator
+   - Android Emulator
+   - Expo Go app on your physical device
+
+## Database Schema
+
+The app uses Supabase with the following main tables:
+
+- `users` - User authentication and profile information
+- `business_profiles` - Partner/business information
+- `food_packages` - Available food packages from partners
+- `orders` - Customer orders

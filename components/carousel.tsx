@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React from "react";
 import { Dimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -14,10 +14,10 @@ interface CarouselProps<T> {
   renderItem: (item: T, index: number) => React.ReactElement;
 }
 
-function clamp(val: number, min: number, max: number) {
-  "worklet";
-  return Math.min(Math.max(val, min), max);
-}
+// function clamp(val: number, min: number, max: number) {
+//   "worklet";
+//   return Math.min(Math.max(val, min), max);
+// }
 
 export default function Carousel<T>({ data, renderItem }: CarouselProps<T>) {
   const { width: screenWidth } = Dimensions.get("window");

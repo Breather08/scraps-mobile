@@ -19,16 +19,13 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useAuth } from "@/providers/auth-provider";
 import { useRouter } from "expo-router";
 import Button from "@/components/ui/button";
 
 export default function PartnersListScreen() {
-  const { user } = useAuth();
   const router = useRouter();
   const scrollY = useRef(new Animated.Value(0)).current;
-  
-  // State variables
+
   const [partners, setPartners] = useState<Partner[]>([]);
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -38,13 +35,11 @@ export default function PartnersListScreen() {
   const [activeFilter, setActiveFilter] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // For featured partners section
+
   const [featuredPartners, setFeaturedPartners] = useState<Partner[]>([]);
-  
-  // Animation values
+
   const searchInputRef = useRef<TextInput>(null);
-  
+
   useEffect(() => {
     makePartnersRequest();
   }, []);
@@ -63,7 +58,7 @@ export default function PartnersListScreen() {
     if (searchQuery.trim() === "") {
       filterPartners(activeFilter);
     } else {
-      const filtered = partners.filter(partner =>
+      const filtered = partners.filter((partner) =>
         partner.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredPartners(filtered);
@@ -100,7 +95,6 @@ export default function PartnersListScreen() {
 
     return filtered;
   }
-    
 
   function filterPartners(filter: string) {
     setActiveFilter(filter);
@@ -115,7 +109,12 @@ export default function PartnersListScreen() {
           <Text style={styles.logoText}>Sarqyt</Text>
         </View>
         <View style={styles.searchContainer}>
-          <MaterialCommunityIcons name="magnify" size={22} color="#888" style={styles.searchIcon} />
+          <MaterialCommunityIcons
+            name="magnify"
+            size={22}
+            color="#888"
+            style={styles.searchIcon}
+          />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
@@ -127,13 +126,13 @@ export default function PartnersListScreen() {
             onBlur={() => setIsSearchFocused(false)}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.clearButton}
               onPress={() => {
                 setSearchQuery("");
                 searchInputRef.current?.blur();
               }}
-            >  
+            >
               <MaterialCommunityIcons name="close" size={18} color="#888" />
             </TouchableOpacity>
           )}
@@ -145,12 +144,12 @@ export default function PartnersListScreen() {
   function renderFilterTabs() {
     return (
       <View style={styles.filterContainer}>
-        <ScrollableFilterTabs 
+        <ScrollableFilterTabs
           filters={[
-            { id: 'nearby', label: 'Рядом', icon: 'map-marker' },
-            { id: 'rating', label: 'Топ', icon: 'star-outline' },
-            { id: 'price', label: 'Цена', icon: 'cash-multiple' },
-            { id: 'new', label: 'Новые', icon: 'new-box' }
+            { id: "nearby", label: "Рядом", icon: "map-marker" },
+            { id: "rating", label: "Топ", icon: "star-outline" },
+            { id: "price", label: "Цена", icon: "cash-multiple" },
+            { id: "new", label: "Новые", icon: "new-box" },
           ]}
           activeFilter={activeFilter}
           onSelectFilter={filterPartners}
@@ -160,9 +159,9 @@ export default function PartnersListScreen() {
   }
 
   function renderSkeletonLoaders() {
-    return Array(6).fill(0).map((_, index) => (
-      <PartnerSkeleton key={`skeleton-${index}`} />
-    ));
+    return Array(6)
+      .fill(0)
+      .map((_, index) => <PartnerSkeleton key={`skeleton-${index}`} />);
   }
 
   function renderEmptyState() {
@@ -176,7 +175,7 @@ export default function PartnersListScreen() {
         </View>
       );
     }
-    
+
     if (error) {
       return (
         <View style={styles.emptyStateContainer}>
@@ -187,7 +186,7 @@ export default function PartnersListScreen() {
           <Text style={styles.emptyStateText}>
             Не удалось загрузить данные. Проверьте подключение к интернету.
           </Text>
-          <Button 
+          <Button
             title="Повторить"
             onPress={makePartnersRequest}
             variant="primary"
@@ -198,22 +197,26 @@ export default function PartnersListScreen() {
         </View>
       );
     }
-    
+
     if (filteredPartners.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyIconContainer}>
-            <MaterialCommunityIcons name="store-search" size={64} color="#e0e0e0" />
+            <MaterialCommunityIcons
+              name="store-search"
+              size={64}
+              color="#e0e0e0"
+            />
           </View>
           <Text style={styles.emptyStateTitle}>Ничего не найдено</Text>
           <Text style={styles.emptyStateText}>
             Попробуйте изменить параметры поиска или обновите список.
           </Text>
-          <Button 
-            title="Сбросить фильтры" 
+          <Button
+            title="Сбросить фильтры"
             onPress={() => {
-              setSearchQuery('');
-              setActiveFilter('');
+              setSearchQuery("");
+              setActiveFilter("");
               makePartnersRequest();
             }}
             variant="primary"
@@ -224,18 +227,18 @@ export default function PartnersListScreen() {
         </View>
       );
     }
-    
+
     return null;
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor="white" />
       {renderHeader()}
       {renderFilterTabs()}
-      
+
       {loading && initialLoad ? (
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
         >
@@ -248,7 +251,7 @@ export default function PartnersListScreen() {
           keyExtractor={(item) => item.id}
           ListEmptyComponent={renderEmptyState}
           renderItem={({ item, index }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => router.push(`/partner/${item.id}`)}
             >
@@ -264,8 +267,8 @@ export default function PartnersListScreen() {
             />
           }
           onScroll={Animated.event(
-            [{nativeEvent: {contentOffset: {y: scrollY}}}],
-            {useNativeDriver: true}
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
           )}
           scrollEventThrottle={16}
           initialNumToRender={8}
@@ -280,12 +283,16 @@ export default function PartnersListScreen() {
 }
 
 interface FilterTabProps {
-  filters: Array<{id: string, label: string, icon: string}>;
+  filters: Array<{ id: string; label: string; icon: string }>;
   activeFilter: string;
   onSelectFilter: (filterId: string) => void;
 }
 
-function ScrollableFilterTabs({ filters, activeFilter, onSelectFilter }: FilterTabProps) {
+function ScrollableFilterTabs({
+  filters,
+  activeFilter,
+  onSelectFilter,
+}: FilterTabProps) {
   return (
     <FlatList
       horizontal
@@ -293,13 +300,23 @@ function ScrollableFilterTabs({ filters, activeFilter, onSelectFilter }: FilterT
       data={filters}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <TouchableOpacity 
-          style={[styles.filterTab, activeFilter === item.id && styles.filterTabActive]}
-          onPress={() => activeFilter === item.id ? onSelectFilter('') : onSelectFilter(item.id)}
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === item.id && styles.filterTabActive,
+          ]}
+          onPress={() =>
+            activeFilter === item.id
+              ? onSelectFilter("")
+              : onSelectFilter(item.id)
+          }
           activeOpacity={0.7}
         >
-          <Text 
-            style={[styles.filterText, activeFilter === item.id && styles.filterTextActive]}
+          <Text
+            style={[
+              styles.filterText,
+              activeFilter === item.id && styles.filterTextActive,
+            ]}
           >
             {item.label}
           </Text>
@@ -312,76 +329,76 @@ function ScrollableFilterTabs({ filters, activeFilter, onSelectFilter }: FilterT
 
 const styles = StyleSheet.create({
   staticHeader: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingTop: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 8,
     paddingBottom: 10,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     zIndex: 10,
   },
   headerBackground: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: '100%',
+    height: "100%",
     zIndex: -1,
   },
   headerOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: "rgba(255,255,255,0.85)",
     zIndex: 1,
   },
   headerBackgroundImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    position: 'absolute',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+    position: "absolute",
   },
   locationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(46, 204, 113, 0.1)",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
     maxWidth: 200,
   },
   locationText: {
-    color: '#333',
+    color: "#333",
     fontSize: 14,
     marginHorizontal: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: "#f8f8f8",
   },
-  container: { 
-    padding: 12, 
+  container: {
+    padding: 12,
     gap: 4,
   },
   headerOld: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    overflow: 'hidden',
+    borderBottomColor: "#eee",
+    overflow: "hidden",
   },
   headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   logoContainer: {
@@ -390,41 +407,41 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: "#2ecc71",
   },
   logo: {
     width: 120,
     height: 40,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   headerRightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   iconButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f2f2f2',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
     borderRadius: 12,
     paddingHorizontal: 12,
-    alignSelf: 'center',
+    alignSelf: "center",
     height: 46,
-    width: '94%',
+    width: "94%",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   clearButton: {
     padding: 6,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderRadius: 12,
   },
   searchIcon: {
@@ -433,13 +450,13 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   filterContainer: {
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   filterTabsContainer: {
     paddingHorizontal: 12,
@@ -449,37 +466,37 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: "#f2f2f2",
   },
   filterTabActive: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: "#2ecc71",
   },
   filterText: {
     fontSize: 14,
-    color: '#555',
+    color: "#555",
   },
   filterTextActive: {
-    color: '#fff',
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "500",
   },
   featuredSection: {
     marginVertical: 12,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 4,
     marginBottom: 12,
   },
   sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   seeAllButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(46, 204, 113, 0.1)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 16,
@@ -491,80 +508,80 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   seeAllButton: {
     fontSize: 14,
-    color: '#2ecc71',
-    fontWeight: '500',
+    color: "#2ecc71",
+    fontWeight: "500",
   },
   featuredCard: {
     width: 180,
     height: 120,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginRight: 12,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   featuredImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
   featuredOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: "rgba(0,0,0,0.3)",
     padding: 12,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   featuredLogoContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     left: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   featuredLogo: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   featuredName: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 6,
   },
   featuredRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 4,
   },
   featuredRatingText: {
-    color: '#fff',
+    color: "#fff",
     marginLeft: 4,
     fontSize: 12,
-    fontWeight: '500',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    fontWeight: "500",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 6,
   },
   emptyStateContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 32,
     marginTop: 40,
   },
@@ -572,12 +589,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -586,44 +603,44 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,200,200,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,200,200,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#ff6b6b',
+    borderColor: "#ff6b6b",
   },
   emptyIconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(240,240,240,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(240,240,240,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#555',
+    fontWeight: "bold",
+    color: "#555",
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#888',
-    textAlign: 'center',
+    color: "#888",
+    textAlign: "center",
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: "#2ecc71",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
   },
   retryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   actionButton: {
     paddingHorizontal: 24,

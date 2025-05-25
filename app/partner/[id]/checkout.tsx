@@ -1,14 +1,27 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Dimensions, Platform } from "react-native";
-import MapView, { Marker, Polyline, UrlTile, MapViewProps } from "react-native-maps";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
 import { usePartner } from "@/entities/partner/providers/partners-provider";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   getCurrentPositionAsync,
   LocationObject,
-  requestForegroundPermissionsAsync
+  requestForegroundPermissionsAsync,
 } from "expo-location";
 import CurrentLocationMarker from "@/entities/map/components/current-location-marker";
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  FontAwesome5,
+} from "@expo/vector-icons";
 import Island from "@/components/island";
 import Informer from "@/components/informer";
 import { formatNumber } from "@/utils/number";
@@ -32,51 +45,56 @@ export default function CheckoutScreen() {
   const { user } = useAuth();
   const [userLocation, setLocation] = useState<LocationObject | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [, setOrderSuccess] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("card");
 
-  // Get parameters from the route
   const params = useLocalSearchParams();
-  const boxType = params.boxType as string || 'standard';
-  const boxName = params.boxName as string || 'Стандартный';
+  const boxType = (params.boxType as string) || "standard";
+  const boxName = (params.boxName as string) || "Стандартный";
   const boxPrice = Number(params.boxPrice as string) || 0;
   const boxQuantity = Number(params.boxQuantity as string) || 1;
-  const boxDescription = params.boxDescription as string || '';
 
-  // Create items array from route params instead of mock data
   const [items, setItems] = useState<CheckoutItem[]>([
-    { id: boxType, name: boxName, price: boxPrice, quantity: boxQuantity }
+    { id: boxType, name: boxName, price: boxPrice, quantity: boxQuantity },
   ]);
 
-  const [route, setRoute] = useState<{ points: { latitude: number, longitude: number }[], distance: number, duration: number } | null>(null);
+  const [route, setRoute] = useState<{
+    points: { latitude: number; longitude: number }[];
+    distance: number;
+    duration: number;
+  } | null>(null);
 
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 0; // Free delivery
-  const serviceFee = Math.round(subtotal * 0.05); // 5% service fee
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const deliveryFee = 0; // Delivery fee
+  const serviceFee = Math.round(subtotal * 0.05); // Service fee
   const total = subtotal + deliveryFee + serviceFee;
 
-  // Calculate distance between two coordinates using Haversine formula
-  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  function calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number {
     const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // Distance in meters
   }
 
-  // Calculate distance between user and partner location
   const distanceInfo = useMemo(() => {
     if (!userLocation?.coords || !partner) return null;
 
-    // Calculate direct distance in meters
     const distanceMeters = calculateDistance(
       userLocation.coords.latitude,
       userLocation.coords.longitude,
@@ -84,23 +102,19 @@ export default function CheckoutScreen() {
       partner.coords.longitude
     );
 
-    // Convert to kilometers with 1 decimal place
-    const distance = Math.round(distanceMeters / 100) / 10;
+    const distanceKm = Math.round(distanceMeters / 100) / 10;
+    const walkingMinutes = Math.round((distanceMeters / 1000 / 5) * 60);
+    const drivingMinutes = Math.round((distanceMeters / 1000 / 30) * 60);
 
-    // Estimate walking time (average walking speed 5km/h)
-    const walkingMinutes = Math.round((distanceMeters / 1000) / 5 * 60);
-
-    // Estimate driving time (average urban driving speed 30km/h)
-    const drivingMinutes = Math.round((distanceMeters / 1000) / 30 * 60);
-
-    return { distance, walkingMinutes, drivingMinutes };
+    return { distance: distanceKm, walkingMinutes, drivingMinutes };
   }, [userLocation, partner]);
 
-  // Simulate a route between two points
-  function generateRoute(start: { latitude: number, longitude: number }, end: { latitude: number, longitude: number }) {
+  function generateRoute(
+    start: { latitude: number; longitude: number },
+    end: { latitude: number; longitude: number }
+  ) {
     if (!start || !end) return null;
 
-    // Create a simple line with slight curve for more realistic appearance
     const points = [];
     const steps = 20;
 
@@ -113,7 +127,8 @@ export default function CheckoutScreen() {
 
       // Add slight curve if not start or end point
       const curveAmount = 0.0003; // Adjust for curve intensity
-      const curve = i > 0 && i < steps ? Math.sin(ratio * Math.PI) * curveAmount : 0;
+      const curve =
+        i > 0 && i < steps ? Math.sin(ratio * Math.PI) * curveAmount : 0;
 
       points.push({
         latitude: lat + curve,
@@ -123,69 +138,70 @@ export default function CheckoutScreen() {
 
     return {
       points,
-      // Using the same distance we calculated above
       distance: distanceInfo?.distance || 0,
-      // Using the time estimate calculated above
-      duration: distanceInfo?.drivingMinutes || 0
+      duration: distanceInfo?.drivingMinutes || 0,
     };
   }
 
-  async function requestLocation() {
-    if (!partner) return;
-
-    const { status } = await requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Доступ к местоположению",
-        "Для определения маршрута требуется доступ к вашему местоположению",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
+  const requestLocation = useCallback(async () => {
     try {
-      const currentLocation = await getCurrentPositionAsync({
-        accuracy: Platform.OS === 'ios' ? 6 : 4, // Balanced accuracy
-      });
+      const { status } = await requestForegroundPermissionsAsync();
 
-      setLocation(currentLocation);
-
-      // Generate route between user and partner locations
-      if (partner && currentLocation) {
-        const routeData = generateRoute(
-          currentLocation.coords,
-          partner.coords
-        );
-        setRoute(routeData);
+      if (status !== "granted") {
+        Alert.alert("Ошибка", "Не удалось получить доступ к местоположению");
+        return;
       }
 
-      // Fit map to show both markers and the route
-      mapRef.current?.fitToCoordinates([currentLocation.coords, partner.coords], {
-        edgePadding: { top: 70, right: 70, bottom: 70, left: 70 },
-        animated: true,
+      const location = await getCurrentPositionAsync({
+        accuracy: Platform.OS === "ios" ? 6 : 4,
       });
+
+      setLocation(location);
+
+      if (partner && mapRef.current) {
+        const routeData = generateRoute(
+          {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          },
+          {
+            latitude: partner.coords.latitude,
+            longitude: partner.coords.longitude,
+          }
+        );
+
+        setRoute(routeData);
+
+        mapRef.current.fitToCoordinates(
+          [
+            {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            },
+            {
+              latitude: partner.coords.latitude,
+              longitude: partner.coords.longitude,
+            },
+          ],
+          {
+            edgePadding: { top: 70, right: 70, bottom: 70, left: 70 },
+            animated: true,
+          }
+        );
+      }
     } catch (error) {
       console.error("Error getting location:", error);
       Alert.alert("Ошибка", "Не удалось определить ваше местоположение");
     }
-  }
+  }, [generateRoute, mapRef, partner]);
 
   useEffect(() => {
     requestLocation();
-  }, []);
-
-  function updateQuantity(id: string, newQuantity: number) {
-    if (newQuantity < 1) return;
-
-    setItems(items.map(item =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
-  }
+  }, [requestLocation]);
 
   async function confirmOrder() {
     if (!partner || !user || isProcessing) return;
 
-    // Check if quantity is valid
     if (boxQuantity <= 0) {
       Alert.alert("Ошибка", "Пожалуйста, выберите количество боксов.");
       return;
@@ -194,41 +210,68 @@ export default function CheckoutScreen() {
     try {
       setIsProcessing(true);
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // TODO: Replace with actual API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Order success
       setOrderSuccess(true);
 
-      // Show success alert
       Alert.alert(
         "Заказ оформлен",
         "Ваш заказ успешно оформлен. Вы можете отслеживать статус в разделе 'История заказов'.",
-        [{
-          text: "OK",
-          onPress: () => {
-            // Navigate back to main screen
-            router.replace("/(tabs)/partners");
-          }
-        }]
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.replace("/(tabs)");
+            },
+          },
+        ]
       );
-    } catch (error) {
-      Alert.alert("Ошибка", "Не удалось оформить заказ. Пожалуйста, попробуйте позже.");
+    } catch (_) {
+      Alert.alert(
+        "Ошибка",
+        "Не удалось оформить заказ. Пожалуйста, попробуйте позже."
+      );
     } finally {
       setIsProcessing(false);
     }
   }
 
-  const PaymentMethodItem = ({ method, title, icon, selected }: { method: PaymentMethod, title: string, icon: string, selected: boolean }) => (
+  const PaymentMethodItem = ({
+    method,
+    title,
+    icon,
+    selected,
+  }: {
+    method: PaymentMethod;
+    title: string;
+    icon: string;
+    selected: boolean;
+  }) => (
     <TouchableOpacity
       style={[styles.paymentMethod, selected && styles.paymentMethodSelected]}
       onPress={() => setSelectedPayment(method)}
     >
-      <MaterialCommunityIcons name={icon as any} size={24} color={selected ? "#2ecc71" : "#555"} />
-      <Text style={[styles.paymentMethodText, selected && styles.paymentMethodTextSelected]}>{title}</Text>
+      <MaterialCommunityIcons
+        name={icon as any}
+        size={24}
+        color={selected ? "#2ecc71" : "#555"}
+      />
+      <Text
+        style={[
+          styles.paymentMethodText,
+          selected && styles.paymentMethodTextSelected,
+        ]}
+      >
+        {title}
+      </Text>
       {selected && (
         <View style={styles.checkmark}>
-          <MaterialCommunityIcons name="check-circle" size={20} color="#2ecc71" />
+          <MaterialCommunityIcons
+            name="check-circle"
+            size={20}
+            color="#2ecc71"
+          />
         </View>
       )}
     </TouchableOpacity>
@@ -398,7 +441,9 @@ export default function CheckoutScreen() {
             <View style={styles.totalsContainer}>
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Промежуточный итог</Text>
-                <Text style={styles.totalsValue}>{formatNumber(subtotal, { suffix: "₸" })}</Text>
+                <Text style={styles.totalsValue}>
+                  {formatNumber(subtotal, { suffix: "₸" })}
+                </Text>
               </View>
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Доставка</Text>
@@ -406,16 +451,22 @@ export default function CheckoutScreen() {
               </View>
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Сервисный сбор</Text>
-                <Text style={styles.totalsValue}>{formatNumber(serviceFee, { suffix: "₸" })}</Text>
+                <Text style={styles.totalsValue}>
+                  {formatNumber(serviceFee, { suffix: "₸" })}
+                </Text>
               </View>
               <View style={[styles.totalsRow, styles.totalRow]}>
                 <Text style={styles.totalLabel}>К оплате</Text>
-                <Text style={styles.totalValue}>{formatNumber(total, { suffix: "₸" })}</Text>
+                <Text style={styles.totalValue}>
+                  {formatNumber(total, { suffix: "₸" })}
+                </Text>
               </View>
             </View>
 
             <Button
-              title={`Оформить заказ на ${formatNumber(total, { suffix: "₸" })}`}
+              title={`Оформить заказ на ${formatNumber(total, {
+                suffix: "₸",
+              })}`}
               variant="primary"
               size="large"
               onPress={confirmOrder}
@@ -488,7 +539,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     width: 30,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   mapWrapper: {
@@ -529,41 +580,41 @@ const styles = StyleSheet.create({
   },
   locationRow: {
     flexDirection: "row",
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 16,
   },
   addressText: {
     marginLeft: 8,
     fontSize: 15,
-    color: '#444',
+    color: "#444",
     flex: 1,
   },
   paymentMethods: {
     marginTop: 8,
   },
   paymentMethod: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    position: 'relative',
+    borderBottomColor: "#f0f0f0",
+    position: "relative",
   },
   paymentMethodSelected: {
     borderLeftWidth: 0,
-    borderLeftColor: '#2ecc71',
+    borderLeftColor: "#2ecc71",
   },
   paymentMethodText: {
     marginLeft: 12,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   paymentMethodTextSelected: {
-    color: '#2ecc71',
-    fontWeight: '500',
+    color: "#2ecc71",
+    fontWeight: "500",
   },
   checkmark: {
-    position: 'absolute',
+    position: "absolute",
     right: 8,
   },
   totalsContainer: {
@@ -577,30 +628,30 @@ const styles = StyleSheet.create({
   },
   totalsLabel: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   totalsValue: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   totalsValueFree: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#2ecc71',
+    fontWeight: "500",
+    color: "#2ecc71",
   },
   totalRow: {
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   totalLabel: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   totalValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2ecc71',
+    fontWeight: "bold",
+    color: "#2ecc71",
   },
 });

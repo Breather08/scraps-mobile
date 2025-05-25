@@ -1,31 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Image,
   Alert,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
-import { useAuth } from '@/providers/auth-provider';
-import Button from '@/components/ui/button';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
+import { useAuth } from "@/providers/auth-provider";
+import Button from "@/components/ui/button";
 
 export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(false);
   const { requestOtp } = useAuth();
 
   const formatPhoneNumber = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    
+    const cleaned = text.replace(/\D/g, "");
+
     setIsPhoneValid(cleaned.length === 10);
-    // Format as +X (XXX) XXX-XXXX if in proper length
     if (cleaned.length <= 10) {
       setPhone(cleaned);
     }
@@ -33,7 +30,10 @@ export default function LoginScreen() {
 
   const handleContinue = async () => {
     if (phone.length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid phone number');
+      Alert.alert(
+        "Неверный номер",
+        "Пожалуйста, введите правильный номер телефона"
+      );
       return;
     }
 
@@ -41,16 +41,16 @@ export default function LoginScreen() {
       setIsLoading(true);
       const formattedPhone = `+7${phone}`;
       await requestOtp(formattedPhone);
-      
+
       // Pass phone to verification screen
       router.push({
-        pathname: '/(auth)/verify',
-        params: { phone: formattedPhone }
+        pathname: "/(auth)/verify",
+        params: { phone: formattedPhone },
       });
-    } catch (error) {
+    } catch (_) {
       Alert.alert(
-        'Ошибка',
-        'Не удалось отправить код подтверждения. Пожалуйста, повторите попытку.'
+        "Ошибка",
+        "Не удалось отправить код подтверждения. Пожалуйста, повторите попытку."
       );
     } finally {
       setIsLoading(false);
@@ -58,26 +58,29 @@ export default function LoginScreen() {
   };
 
   const displayPhone = () => {
-    if (!phone) return '';
-    
-    // Format for display only
+    if (!phone) return "";
+
     let formatted = phone;
     if (phone.length === 10) {
-      formatted = `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+      formatted = `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(
+        6
+      )}`;
     }
     return formatted;
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <StatusBar style="dark" />
-      
+
       <View style={styles.content}>
         <Text style={styles.title}>Приветствуем!</Text>
-        <Text style={styles.subtitle}>Введите свой номер телефона, чтобы продолжить</Text>
+        <Text style={styles.subtitle}>
+          Введите свой номер телефона, чтобы продолжить
+        </Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.prefix}>+7</Text>
@@ -92,7 +95,7 @@ export default function LoginScreen() {
           />
         </View>
 
-        <Button 
+        <Button
           title="Продолжить"
           variant="primary"
           size="large"
@@ -105,7 +108,8 @@ export default function LoginScreen() {
 
         <Text style={styles.terms}>
           {/* TODO: Add terms and privacy policy */}
-          Продолжая, вы соглашаетесь с нашими Условиями использования и Политикой конфиденциальности
+          Продолжая, вы соглашаетесь с нашими Условиями использования и
+          Политикой конфиденциальности
         </Text>
       </View>
     </KeyboardAvoidingView>
@@ -115,15 +119,15 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   logo: {
@@ -132,21 +136,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#2ecc71',
+    borderBottomColor: "#2ecc71",
     marginBottom: 32,
   },
   prefix: {
@@ -163,8 +167,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   terms: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 12,
-    color: '#999',
+    color: "#999",
   },
 });

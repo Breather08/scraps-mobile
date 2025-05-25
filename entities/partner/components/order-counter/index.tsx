@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Button } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
 
 import styles from "./styles";

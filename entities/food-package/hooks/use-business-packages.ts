@@ -1,23 +1,23 @@
-// src/hooks/useBusinessPackages.ts
-import { useState, useEffect, useCallback } from 'react';
-import { FoodPackage } from '../types';
-import { fetchBusinessPackages } from '../api';
-import { supabase } from '@/services/supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { fromFoodPackageDto } from '../transformers/from-food-package-dto';
-import { FoodPackageDto } from '../transformers/dto/types';
+import { useCallback, useEffect, useState } from "react";
+import { FoodPackage } from "../types";
+import { fetchBusinessPackages } from "../api";
+import { supabase } from "@/services/supabase";
+import { RealtimeChannel } from "@supabase/supabase-js";
+import { fromFoodPackageDto } from "../transformers/from-food-package-dto";
+import { FoodPackageDto } from "../transformers/dto/types";
 
 export const useBusinessPackages = (
-  businessId: string, 
-  includeUnavailable = false
+  businessId: string,
+  includeUnavailable = false,
 ) => {
   const [packages, setPackages] = useState<FoodPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const [realtimeChannel, setRealtimeChannel] = useState<
+    RealtimeChannel | null
+  >(null);
 
-  // Function to fetch packages
   const fetchPackages = useCallback(async () => {
     try {
       setError(null);
@@ -26,50 +26,52 @@ export const useBusinessPackages = (
       const fetchedPackages = await fetchBusinessPackages(businessId);
       setPackages(fetchedPackages);
     } catch (err) {
-      setError('Failed to load food packages. Please try again.');
-      console.error('Error fetching packages:', err);
+      setError("Failed to load food packages. Please try again.");
+      console.error("Error fetching packages:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, [businessId, includeUnavailable]);
 
-  // Initial data fetch
   useEffect(() => {
     fetchPackages();
   }, [fetchPackages]);
 
-  // Set up realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel(`business-packages-${businessId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'food_packages',
-        filter: `business_id=eq.${businessId}`
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "food_packages",
+        filter: `business_id=eq.${businessId}`,
       }, (payload) => {
-        const data = fromFoodPackageDto(payload.new as FoodPackageDto)
+        const data = fromFoodPackageDto(payload.new as FoodPackageDto);
 
-        if (payload.eventType === 'INSERT') {
-          const currentDate = new Date()
-          if (includeUnavailable || (
-            data.available_quantity > 0 &&
-            !data.sold_out &&
-            data.availability_start &&
-            data.availability_end &&
-            currentDate >= data.availability_start &&
-            currentDate <= data.availability_end
-          )) {
-            setPackages(prev => [data, ...prev]);
+        if (payload.eventType === "INSERT") {
+          const currentDate = new Date();
+          if (
+            includeUnavailable || (
+              data.available_quantity > 0 &&
+              !data.sold_out &&
+              data.availability_start &&
+              data.availability_end &&
+              currentDate >= data.availability_start &&
+              currentDate <= data.availability_end
+            )
+          ) {
+            setPackages((prev) => [data, ...prev]);
           }
-        } else if (payload.eventType === 'UPDATE') {
-          setPackages(prev => 
-            prev.map(pkg => pkg.id === payload.new.id ? (payload.new as FoodPackage) : pkg)
+        } else if (payload.eventType === "UPDATE") {
+          setPackages((prev) =>
+            prev.map((pkg) =>
+              pkg.id === payload.new.id ? (payload.new as FoodPackage) : pkg
+            )
           );
-        } else if (payload.eventType === 'DELETE') {
-          setPackages(prev => 
-            prev.filter(pkg => pkg.id !== payload.old.id)
+        } else if (payload.eventType === "DELETE") {
+          setPackages((prev) =>
+            prev.filter((pkg) => pkg.id !== payload.old.id)
           );
         }
       })
@@ -77,7 +79,6 @@ export const useBusinessPackages = (
 
     setRealtimeChannel(channel);
 
-    // Cleanup subscription on unmount
     return () => {
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
@@ -85,24 +86,21 @@ export const useBusinessPackages = (
     };
   }, [businessId, includeUnavailable]);
 
-  // Function to refresh packages
   const refreshPackages = useCallback(() => {
     setRefreshing(true);
     fetchPackages();
   }, [fetchPackages]);
 
-  // Function to toggle showing unavailable packages
   const toggleShowUnavailable = useCallback(() => {
     const newIncludeUnavailable = !includeUnavailable;
-    // Re-fetch with new filter
     fetchBusinessPackages(businessId)
-      .then(fetchedPackages => {
+      .then((fetchedPackages) => {
         setPackages(fetchedPackages);
       })
-      .catch(err => {
-        console.error('Error toggling unavailable packages:', err);
+      .catch((err) => {
+        console.error("Error toggling unavailable packages:", err);
       });
-    
+
     return newIncludeUnavailable;
   }, [businessId, includeUnavailable]);
 
@@ -112,6 +110,6 @@ export const useBusinessPackages = (
     error,
     refreshing,
     refreshPackages,
-    toggleShowUnavailable
+    toggleShowUnavailable,
   };
 };
