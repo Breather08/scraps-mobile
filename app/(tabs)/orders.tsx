@@ -3,9 +3,9 @@ import { FlatList, Text, View, StyleSheet, Image, Pressable, ActivityIndicator }
 import { StatusBar } from 'expo-status-bar';
 import { TabView, TabBar } from 'react-native-tab-view';
 import { useWindowDimensions } from 'react-native';
-import { supabase } from '../../../services/supabase';
-import { useAuth } from '../../../providers/auth-provider';
-import { Database } from '../../../database.types';
+import { supabase } from '@/services/supabase';
+import { useAuth } from '@/providers/auth-provider';
+import { Database } from '@/database.types';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
   food_package: Database['public']['Tables']['food_packages']['Row'];

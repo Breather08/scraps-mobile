@@ -17,7 +17,7 @@ export const PartnersContext = createContext<PartnersContextType>({
   setPartner: () => {},
 });
 
-export function PartnersProvider({ children }: { children: React.ReactNode }) {
+export function PartnerProvider({ children }: { children: React.ReactNode }) {
   const [partner, setPartner] = useState<Partner | null>(null);
 
   return (
@@ -30,7 +30,7 @@ export function PartnersProvider({ children }: { children: React.ReactNode }) {
 export const usePartner = (): PartnersContextType => {
   const ctx = useContext(PartnersContext);
   if (!ctx) {
-    throw new Error("usePartner must be used within PartnersProvider");
+    throw new Error("usePartner must be used within PartnerProvider");
   }
 
   return ctx;

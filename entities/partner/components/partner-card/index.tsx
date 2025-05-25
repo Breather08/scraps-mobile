@@ -49,7 +49,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, onToggleFavorite }) 
     <Pressable
       onPress={() => {
         setPartner(partner);
-        router.navigate(`/partners/${partner.id}`);
+        router.navigate(`/partner/${partner.id}`);
       }}
       android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
     >

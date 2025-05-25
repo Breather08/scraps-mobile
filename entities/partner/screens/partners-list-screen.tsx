@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { fetchPartners } from "../api";
+import { fetchAllPartners } from "../api";
 import { Partner } from "../types";
 import PartnerCard from "../components/partner-card";
 import PartnerSkeleton from "../components/partner-skeleton";
@@ -74,7 +74,7 @@ export default function PartnersListScreen() {
     setIsRefreshing(true);
     setLoading(true);
     try {
-      const response = await fetchPartners();
+      const response = await fetchAllPartners();
       setPartners(response);
       setFilteredPartners(response);
     } catch (error) {
@@ -96,8 +96,6 @@ export default function PartnersListScreen() {
         return filtered.sort((a, b) => b.rating - a.rating);
       case "new":
         return [...partners].slice(0, 3);
-      case "price":
-        return filtered.sort((a, b) => a.price - b.price);
     }
 
     return filtered;
@@ -252,7 +250,7 @@ export default function PartnersListScreen() {
           renderItem={({ item, index }) => (
             <TouchableOpacity 
               activeOpacity={0.7}
-              onPress={() => router.push(`/partners/${item.id}`)}
+              onPress={() => router.push(`/partner/${item.id}`)}
             >
               <PartnerCard partner={item} key={index} />
             </TouchableOpacity>

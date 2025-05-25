@@ -3,7 +3,6 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { AuthProvider, useAuth } from "@/providers/auth-provider";
-import { PartnersProvider } from "@/entities/partner/providers/partners-provider";
 import { useEffect } from "react";
 
 function InnerLayout() {
@@ -44,6 +43,19 @@ function InnerLayout() {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="partner/[id]/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="partner/[id]/checkout"
+          options={{
+            title: 'Checkout',
+            headerShown: false,
+          }}
+        />
       </Stack>
     </SafeAreaView>
   );
@@ -52,9 +64,7 @@ function InnerLayout() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <PartnersProvider>
-        <InnerLayout />
-      </PartnersProvider>
+      <InnerLayout />
     </AuthProvider>
   );
 }

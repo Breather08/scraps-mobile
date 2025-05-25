@@ -9,23 +9,46 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      box_typical_items: {
+      business_hours: {
         Row: {
-          business_box_id: string
+          business_id: string
+          close_time: string
+          created_at: string | null
+          day_of_week: number
           id: string
-          item_name: string
+          is_closed: boolean
+          open_time: string
+          updated_at: string | null
         }
         Insert: {
-          business_box_id: string
+          business_id: string
+          close_time: string
+          created_at?: string | null
+          day_of_week: number
           id?: string
-          item_name: string
+          is_closed?: boolean
+          open_time: string
+          updated_at?: string | null
         }
         Update: {
-          business_box_id?: string
+          business_id?: string
+          close_time?: string
+          created_at?: string | null
+          day_of_week?: number
           id?: string
-          item_name?: string
+          is_closed?: boolean
+          open_time?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "business_hours_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_profiles: {
         Row: {
@@ -39,6 +62,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          is_deleted: boolean
           latitude: number | null
           logo_url: string | null
           longitude: number | null
@@ -56,6 +80,7 @@ export type Database = {
           description?: string | null
           id: string
           is_active?: boolean | null
+          is_deleted?: boolean
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
@@ -73,6 +98,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_deleted?: boolean
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
@@ -95,6 +121,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          is_deleted: boolean
           notification_preferences: Json | null
           updated_at: string | null
         }
@@ -103,6 +130,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_deleted?: boolean
           notification_preferences?: Json | null
           updated_at?: string | null
         }
@@ -111,6 +139,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_deleted?: boolean
           notification_preferences?: Json | null
           updated_at?: string | null
         }
@@ -122,25 +151,39 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_customer_user"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       favorites: {
         Row: {
+          business_id: string
           created_at: string | null
           customer_id: string
-          package_id: string
         }
         Insert: {
+          business_id: string
           created_at?: string | null
           customer_id: string
-          package_id: string
         }
         Update: {
+          business_id?: string
           created_at?: string | null
           customer_id?: string
-          package_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "favorites_customer_id_fkey"
             columns: ["customer_id"]
@@ -148,17 +191,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "favorites_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "food_packages"
-            referencedColumns: ["id"]
-          },
         ]
       }
       food_packages: {
         Row: {
+          availability_end: string
+          availability_start: string
+          available_quantity: number
           business_id: string
           created_at: string | null
           description: string | null
@@ -166,15 +205,22 @@ export type Database = {
           food_type: string | null
           id: string
           image_url: string | null
+          is_deleted: boolean
+          max_quantity: number
           name: string
           original_price: number
           pickup_end_time: string
           pickup_start_time: string
           quantity: number
+          sold_out: boolean | null
           status: Database["public"]["Enums"]["package_status"] | null
           updated_at: string | null
+          version: number
         }
         Insert: {
+          availability_end: string
+          availability_start: string
+          available_quantity: number
           business_id: string
           created_at?: string | null
           description?: string | null
@@ -182,15 +228,22 @@ export type Database = {
           food_type?: string | null
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
+          max_quantity: number
           name: string
           original_price: number
           pickup_end_time: string
           pickup_start_time: string
           quantity: number
+          sold_out?: boolean | null
           status?: Database["public"]["Enums"]["package_status"] | null
           updated_at?: string | null
+          version?: number
         }
         Update: {
+          availability_end?: string
+          availability_start?: string
+          available_quantity?: number
           business_id?: string
           created_at?: string | null
           description?: string | null
@@ -198,13 +251,17 @@ export type Database = {
           food_type?: string | null
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
+          max_quantity?: number
           name?: string
           original_price?: number
           pickup_end_time?: string
           pickup_start_time?: string
           quantity?: number
+          sold_out?: boolean | null
           status?: Database["public"]["Enums"]["package_status"] | null
           updated_at?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -212,6 +269,48 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_status_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -230,6 +329,7 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"] | null
           total_price: number
           updated_at: string | null
+          version: number
         }
         Insert: {
           business_id: string
@@ -244,6 +344,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"] | null
           total_price: number
           updated_at?: string | null
+          version?: number
         }
         Update: {
           business_id?: string
@@ -258,6 +359,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"] | null
           total_price?: number
           updated_at?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -272,6 +374,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "available_packages"
             referencedColumns: ["id"]
           },
           {
@@ -439,6 +548,83 @@ export type Database = {
       }
     }
     Views: {
+      available_packages: {
+        Row: {
+          availability_end: string | null
+          availability_start: string | null
+          available_quantity: number | null
+          business_id: string | null
+          created_at: string | null
+          description: string | null
+          discounted_price: number | null
+          food_type: string | null
+          id: string | null
+          image_url: string | null
+          is_deleted: boolean | null
+          max_quantity: number | null
+          name: string | null
+          original_price: number | null
+          pickup_end_time: string | null
+          pickup_start_time: string | null
+          quantity: number | null
+          sold_out: boolean | null
+          status: Database["public"]["Enums"]["package_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          availability_end?: string | null
+          availability_start?: string | null
+          available_quantity?: number | null
+          business_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          discounted_price?: number | null
+          food_type?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_deleted?: boolean | null
+          max_quantity?: number | null
+          name?: string | null
+          original_price?: number | null
+          pickup_end_time?: string | null
+          pickup_start_time?: string | null
+          quantity?: number | null
+          sold_out?: boolean | null
+          status?: Database["public"]["Enums"]["package_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          availability_end?: string | null
+          availability_start?: string | null
+          available_quantity?: number | null
+          business_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          discounted_price?: number | null
+          food_type?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_deleted?: boolean | null
+          max_quantity?: number | null
+          name?: string | null
+          original_price?: number | null
+          pickup_end_time?: string | null
+          pickup_start_time?: string | null
+          quantity?: number | null
+          sold_out?: boolean | null
+          status?: Database["public"]["Enums"]["package_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_packages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geography_columns: {
         Row: {
           coord_dimension: number | null
@@ -495,17 +681,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "favorites_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_package_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "food_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -1037,13 +1223,44 @@ export type Database = {
           last_updated: string
         }[]
       }
+      get_business_packages: {
+        Args: { business_id_param: string; include_unavailable?: boolean }
+        Returns: {
+          id: string
+          business_id: string
+          name: string
+          description: string
+          original_price: number
+          discounted_price: number
+          quantity: number
+          available_quantity: number
+          max_quantity: number
+          image_url: string
+          food_type: string
+          pickup_start_time: string
+          pickup_end_time: string
+          status: Database["public"]["Enums"]["package_status"]
+          availability_start: string
+          availability_end: string
+          sold_out: boolean
+          created_at: string
+          updated_at: string
+        }[]
+      }
       get_businesses_with_available_packages: {
-        Args: {
-          p_lat: number
-          p_lng: number
-          p_radius_km?: number
-          p_customer_id?: string
-        }
+        Args:
+          | {
+              p_customer_id: string
+              p_lat: number
+              p_lng: number
+              p_radius_km?: number
+            }
+          | {
+              p_lat: number
+              p_lng: number
+              p_radius_km?: number
+              p_customer_id?: string
+            }
         Returns: {
           business_id: string
           business_name: string
@@ -1081,6 +1298,39 @@ export type Database = {
           available_food_types: number
           available_packages: number
           favorited_at: string
+        }[]
+      }
+      get_favorite_partners: {
+        Args: { p_customer_id: string }
+        Returns: {
+          address: string
+          average_rating: number | null
+          background_url: string | null
+          business_name: string
+          business_type: string | null
+          city: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_deleted: boolean
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          operating_hours: Json
+          updated_at: string | null
+        }[]
+      }
+      get_most_favorited_partners: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_id: string
+          business_name: string
+          logo_url: string
+          latitude: number
+          longitude: number
+          favorite_count: number
+          available_packages: number
         }[]
       }
       get_nearby_businesses: {
@@ -1122,6 +1372,32 @@ export type Database = {
           available_packages: number
         }[]
       }
+      get_nearby_favorite_partners: {
+        Args: {
+          p_customer_id: string
+          p_lat: number
+          p_lng: number
+          p_radius_km?: number
+        }
+        Returns: {
+          id: string
+          business_name: string
+          description: string
+          logo_url: string
+          cover_url: string
+          business_type: string
+          address: string
+          city: string
+          latitude: number
+          longitude: number
+          operating_hours: Json
+          is_active: boolean
+          average_rating: number
+          created_at: string
+          updated_at: string
+          distance_km: number
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
@@ -1138,6 +1414,10 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      is_business_favorite: {
+        Args: { p_customer_id: string; p_business_id: string }
+        Returns: boolean
+      }
       is_favorite: {
         Args: { p_customer_id: string; p_business_id: string }
         Returns: boolean
@@ -1153,6 +1433,32 @@ export type Database = {
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      nearby_packages: {
+        Args: { lat: number; lng: number; radius: number }
+        Returns: {
+          availability_end: string
+          availability_start: string
+          available_quantity: number
+          business_id: string
+          created_at: string | null
+          description: string | null
+          discounted_price: number
+          food_type: string | null
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          max_quantity: number
+          name: string
+          original_price: number
+          pickup_end_time: string
+          pickup_start_time: string
+          quantity: number
+          sold_out: boolean | null
+          status: Database["public"]["Enums"]["package_status"] | null
+          updated_at: string | null
+          version: number
+        }[]
       }
       path: {
         Args: { "": unknown }
@@ -2424,6 +2730,10 @@ export type Database = {
       text: {
         Args: { "": unknown }
         Returns: string
+      }
+      toggle_favorite: {
+        Args: { p_customer_id: string; p_business_id: string }
+        Returns: boolean
       }
       unlockrows: {
         Args: { "": string }

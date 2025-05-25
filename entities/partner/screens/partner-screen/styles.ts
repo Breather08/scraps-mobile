@@ -340,6 +340,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  boxOptionImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   boxOptionSelected: {
     borderColor: '#2ecc71',

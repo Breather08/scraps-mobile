@@ -191,15 +191,6 @@ export default function CheckoutScreen() {
       return;
     }
 
-    // Check if there are enough boxes available
-    if (boxQuantity > partner.totalBoxCount) {
-      Alert.alert(
-        "Недостаточно боксов",
-        `Доступно только ${partner.totalBoxCount} шт. Пожалуйста, уменьшите количество.`
-      );
-      return;
-    }
-
     try {
       setIsProcessing(true);
 

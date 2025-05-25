@@ -1,0 +1,1 @@
+export const FOOD_PACKAGE_STATUSES = ["available", "reserved", "sold_out", "expired"] as const

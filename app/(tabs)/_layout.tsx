@@ -18,7 +18,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="partners"
+        name="index"
         options={{
           title: "Discover",
           tabBarIcon: ({ color, size }) => (
@@ -27,7 +27,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="explore"
         options={{
           title: "Explore",
           tabBarIcon: ({ color, size }) => (

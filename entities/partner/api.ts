@@ -10,20 +10,20 @@ export const fetchActivePartners = async (): Promise<Partner[]> => {
     .select("*")
     .eq("is_active", true);
 
-  if (error || !Array.isArray(data)) return []
+  if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile))
-}
+  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile));
+};
 
 export const fetchAllPartners = async (): Promise<Partner[]> => {
   const { data, error } = await supabase
     .from("business_profiles")
-    .select("*")
+    .select("*");
 
   if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile))
-}
+  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile));
+};
 
 export const fetchFavoritePartners = async (): Promise<Partner[]> => {
   const { data, error } = await supabase
@@ -33,11 +33,11 @@ export const fetchFavoritePartners = async (): Promise<Partner[]> => {
 
   if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile))
-}
+  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile));
+};
 
 export const fetchPartnersByCategory = async (
-  categoryId: string
+  categoryId: string,
 ): Promise<Partner[]> => {
   // TODO: Implement filtering by category
   // For now, just return all partners
@@ -54,7 +54,7 @@ export const fetchFeaturedPartners = async (): Promise<Partner[]> => {
 
   if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile) => fromPartnerDto(profile))
+  return data.map((profile) => fromPartnerDto(profile));
 };
 
 export const searchPartners = async (query: string): Promise<Partner[]> => {
@@ -64,12 +64,14 @@ export const searchPartners = async (query: string): Promise<Partner[]> => {
     .eq("is_active", true)
     .ilike("business_name", `%${query}%`);
 
-  if (error || !Array.isArray(data)) return []
+  if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile) => fromPartnerDto(profile))
+  return data.map((profile) => fromPartnerDto(profile));
 };
 
-export const fetchPartnerById = async (partnerId: string): Promise<Partner | null> => {
+export const fetchPartnerById = async (
+  partnerId: string,
+): Promise<Partner | null> => {
   const { data, error } = await supabase
     .from("business_profiles")
     .select("*")
@@ -83,25 +85,28 @@ export const fetchPartnerById = async (partnerId: string): Promise<Partner | nul
 
 export const getFavoritePartners = async () => {
   const { user } = useAuth();
-  const { data, error } = await supabase.rpc('get_favorite_partners', {
-    p_customer_id: user?.id
+  const { data, error } = await supabase.rpc("get_favorite_partners", {
+    p_customer_id: user?.id,
   });
 
   if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile) => fromPartnerDto(profile))
+  return data.map((profile) => fromPartnerDto(profile));
 };
 
-export const getNearbyFavoritePartners = async (latitude: number, longitude: number) => {
+export const getNearbyFavoritePartners = async (
+  latitude: number,
+  longitude: number,
+) => {
   const { user } = useAuth();
-  const { data, error } = await supabase.rpc('get_nearby_favorite_partners', {
+  const { data, error } = await supabase.rpc("get_nearby_favorite_partners", {
     p_customer_id: user?.id,
     p_lat: latitude,
     p_lng: longitude,
-    p_radius_km: 5
+    p_radius_km: 5,
   });
 
   if (error || !Array.isArray(data)) return [];
 
-  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile))
+  return data.map((profile: BusinessProfileRow) => fromPartnerDto(profile));
 };
